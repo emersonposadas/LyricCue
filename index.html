@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="LyricCue is a rehearsal lyric prompter with readable stage contrast, smooth auto-scroll, and quick lyric selection."
+    />
+    <title>LyricCue</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="control-panel" aria-label="Lyric controls">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true">LC</div>
+          <div>
+            <h1>LyricCue</h1>
+            <p>Rehearsal prompter</p>
+          </div>
+        </div>
+
+        <section class="control-section">
+          <label for="songSelect">Song</label>
+          <div class="select-row">
+            <select id="songSelect"></select>
+            <button class="icon-button" id="deleteSong" type="button" title="Delete custom lyric" aria-label="Delete custom lyric">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-head">
+            <label for="lyricEditor">Lyrics</label>
+            <button id="saveSong" class="text-button" type="button">Save</button>
+          </div>
+          <input id="songTitle" class="title-input" type="text" placeholder="Song title" />
+          <input id="songArtist" class="title-input" type="text" placeholder="Artist" />
+          <textarea id="lyricEditor" spellcheck="false"></textarea>
+        </section>
+
+        <section class="control-section compact-grid">
+          <label for="fontSize">Text</label>
+          <output id="fontSizeValue" for="fontSize">64px</output>
+          <input id="fontSize" type="range" min="22" max="180" value="64" />
+
+          <label for="scrollSpeed">Speed</label>
+          <output id="scrollSpeedValue" for="scrollSpeed">24 px/s</output>
+          <input id="scrollSpeed" type="range" min="6" max="72" value="24" />
+
+          <label for="lineHeight">Spacing</label>
+          <output id="lineHeightValue" for="lineHeight">1.30</output>
+          <input id="lineHeight" type="range" min="105" max="190" value="130" />
+        </section>
+
+        <section class="control-section">
+          <span class="field-label">Contrast</span>
+          <div class="segmented" role="radiogroup" aria-label="Contrast mode">
+            <button class="segment active" type="button" data-theme="stage" role="radio" aria-checked="true">Stage</button>
+            <button class="segment" type="button" data-theme="paper" role="radio" aria-checked="false">Paper</button>
+            <button class="segment" type="button" data-theme="amber" role="radio" aria-checked="false">Warm</button>
+          </div>
+        </section>
+
+        <section class="transport" aria-label="Prompt controls">
+          <button class="primary-action" id="playPause" type="button">
+            <span id="playIcon" aria-hidden="true">▶</span>
+            <span id="playLabel">Start</span>
+          </button>
+          <button class="icon-button" id="restart" type="button" title="Restart" aria-label="Restart">
+            <span aria-hidden="true">↺</span>
+          </button>
+          <button class="icon-button" id="fullscreen" type="button" title="Fullscreen" aria-label="Fullscreen">
+            <span aria-hidden="true">⛶</span>
+          </button>
+        </section>
+      </aside>
+
+      <section class="stage-wrap" aria-label="Lyric stage">
+        <header class="stage-topline">
+          <div>
+            <p class="stage-kicker">Now cueing</p>
+            <h2 id="stageTitle">Warmup Cue</h2>
+            <p class="stage-artist" id="stageArtist">LyricCue</p>
+          </div>
+          <div class="status-pill" id="statusPill">Ready</div>
+        </header>
+
+        <div class="stage" id="stage" tabindex="0">
+          <div class="fade fade-top" aria-hidden="true"></div>
+          <article class="lyrics" id="lyricsDisplay" aria-live="polite"></article>
+          <div class="fade fade-bottom" aria-hidden="true"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
