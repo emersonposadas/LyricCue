@@ -48,8 +48,8 @@ The app reads `Title:` and `Artist:` from the text file. If title is missing, it
 
 ## Interaction Notes
 
-- Fullscreen targets only the stage area so the side controls are hidden.
-- Auto-scroll uses a transform-based prompter offset instead of native container scrolling.
+- Fullscreen targets the stage and its playback/speed controls; the editor stays outside. Browsers without element fullscreen use a fixed expanded stage.
+- Auto-scroll uses a transform-based prompter offset instead of native container scrolling. Pointer dragging supports touch swipes; resize synchronization preserves progress across rotation.
 - Settings update live: font size, spacing, and speed are recalculated as the user changes controls.
 - Custom pasted songs are stored only in browser `localStorage`; pre-made songs should be committed to the repo.
 

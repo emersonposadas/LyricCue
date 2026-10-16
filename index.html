@@ -46,10 +46,6 @@
           <output id="fontSizeValue" for="fontSize">64px</output>
           <input id="fontSize" type="range" min="22" max="180" value="64" />
 
-          <label for="scrollSpeed">Speed</label>
-          <output id="scrollSpeedValue" for="scrollSpeed">24 px/s</output>
-          <input id="scrollSpeed" type="range" min="6" max="72" value="24" />
-
           <label for="lineHeight">Spacing</label>
           <output id="lineHeightValue" for="lineHeight">1.30</output>
           <input id="lineHeight" type="range" min="105" max="190" value="130" />
@@ -64,18 +60,7 @@
           </div>
         </section>
 
-        <section class="transport" aria-label="Prompt controls">
-          <button class="primary-action" id="playPause" type="button">
-            <span id="playIcon" aria-hidden="true">▶</span>
-            <span id="playLabel">Start</span>
-          </button>
-          <button class="icon-button" id="restart" type="button" title="Restart" aria-label="Restart">
-            <span aria-hidden="true">↺</span>
-          </button>
-          <button class="icon-button" id="fullscreen" type="button" title="Fullscreen" aria-label="Fullscreen">
-            <span aria-hidden="true">⛶</span>
-          </button>
-        </section>
+
       </aside>
 
       <section class="stage-wrap" aria-label="Lyric stage">
@@ -93,6 +78,25 @@
           <article class="lyrics" id="lyricsDisplay" aria-live="polite"></article>
           <div class="fade fade-bottom" aria-hidden="true"></div>
         </div>
+        <footer class="stage-controls">
+          <div class="speed-control">
+          <label for="scrollSpeed">Speed</label>
+          <output id="scrollSpeedValue" for="scrollSpeed">24 px/s</output>
+          <input id="scrollSpeed" type="range" min="6" max="72" value="24" />
+          </div>
+        <section class="transport" aria-label="Prompt controls">
+          <button class="primary-action" id="playPause" type="button" aria-pressed="false">
+            <span id="playIcon" aria-hidden="true">▶</span>
+            <span id="playLabel">Start</span>
+          </button>
+          <button class="icon-button" id="restart" type="button" title="Restart" aria-label="Restart">
+            <span aria-hidden="true">↺</span>
+          </button>
+          <button class="icon-button" id="fullscreen" type="button" title="Fullscreen" aria-label="Fullscreen">
+            <span aria-hidden="true">⛶</span>
+          </button>
+        </section>
+        </footer>
       </section>
     </main>
 

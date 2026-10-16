@@ -91,7 +91,16 @@ let settingsFrame = null;
 
 async function loadSongs() {
   const publishedSongs = await loadPublishedSongs();
-  const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+  let saved = [];
+  try {
+    const stored = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    if (Array.isArray(stored)) {
+      saved = stored.filter(song => song && typeof song.id === "string" &&
+        typeof song.title === "string" && typeof song.lyrics === "string");
+    }
+  } catch {
+    // Playback remains available when storage is blocked or damaged.
+  }
   songs = [...publishedSongs, ...saved];
   selectedId = songs[0]?.id || starterSongs[0].id;
 }
@@ -111,7 +120,8 @@ async function loadPublishedSongs() {
       library.map((song, index) => loadLibrarySong(song, index))
     );
 
-    return loadedSongs.filter(Boolean);
+    const available = loadedSongs.filter(Boolean);
+    return available.length ? available : starterSongs;
   } catch {
     return starterSongs;
   }
@@ -301,6 +311,7 @@ function setPlaying(nextState) {
   }
 
   isPlaying = nextState;
+  els.playPause.setAttribute("aria-pressed", String(isPlaying));
   els.playIcon.textContent = isPlaying ? "Ⅱ" : "▶";
   els.playLabel.textContent = isPlaying ? "Pause" : "Start";
   els.statusPill.textContent = isPlaying ? "Rolling" : "Ready";
@@ -318,7 +329,7 @@ function setPlaying(nextState) {
 function scrollLoop(timestamp) {
   if (!isPlaying) return;
 
-  const elapsed = (timestamp - lastFrame) / 1000;
+  const elapsed = Math.min((timestamp - lastFrame) / 1000, 0.1);
   lastFrame = timestamp;
   scrollCeiling = getMaxScroll();
   setPromptOffset(promptOffset + Number(els.scrollSpeed.value) * elapsed);
@@ -346,6 +357,7 @@ function getScrollProgress() {
 }
 
 function setPromptOffset(value) {
+  if (!Number.isFinite(value)) return;
   promptOffset = Math.max(0, Math.min(value, getMaxScroll()));
   document.documentElement.style.setProperty("--prompt-shift", `${-promptOffset}px`);
 }
@@ -410,6 +422,7 @@ els.lyricEditor.addEventListener("input", () => {
   const title = els.songTitle.value.trim() || currentSong().title;
   els.stageTitle.textContent = title;
   renderLyrics(els.lyricEditor.value);
+  scheduleStageSync();
 });
 els.songTitle.addEventListener("input", () => {
   els.stageTitle.textContent = els.songTitle.value.trim() || "Untitled Cue";
@@ -420,8 +433,17 @@ els.songArtist.addEventListener("input", () => {
 els.fontSize.addEventListener("input", updateTypography);
 els.lineHeight.addEventListener("input", updateTypography);
 els.scrollSpeed.addEventListener("input", updateSpeedLabel);
-window.addEventListener("resize", scheduleStageSync);
-document.addEventListener("fullscreenchange", scheduleStageSync);
+function syncStageSize() {
+  // Use the previous ceiling: the DOM already has its new size at resize time.
+  const progress = scrollCeiling > 0 ? promptOffset / scrollCeiling : 0;
+  scheduleStageSync(progress);
+}
+window.addEventListener("resize", syncStageSize);
+new ResizeObserver(syncStageSize).observe(els.stage);
+document.addEventListener("fullscreenchange", () => {
+  updateFullscreenLabel();
+  syncStageSize();
+});
 els.playPause.addEventListener("click", () => setPlaying(!isPlaying));
 els.restart.addEventListener("click", restartScroll);
 els.stage.addEventListener(
@@ -435,12 +457,43 @@ els.stage.addEventListener(
   },
   { passive: false }
 );
-els.fullscreen.addEventListener("click", () => {
+let drag = null;
+els.stage.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  drag = { id: event.pointerId, y: event.clientY };
+  els.stage.setPointerCapture(event.pointerId);
+});
+els.stage.addEventListener("pointermove", (event) => {
+  if (!drag || drag.id !== event.pointerId) return;
+  nudgePrompt(drag.y - event.clientY);
+  drag.y = event.clientY;
+});
+function endDrag() { drag = null; }
+els.stage.addEventListener("pointerup", endDrag);
+els.stage.addEventListener("pointercancel", endDrag);
+els.stage.addEventListener("lostpointercapture", endDrag);
+
+function updateFullscreenLabel() {
+  const active = Boolean(document.fullscreenElement) || els.stageWrap.classList.contains("expanded");
+  els.fullscreen.setAttribute("aria-label", active ? "Exit fullscreen" : "Fullscreen");
+  els.fullscreen.title = active ? "Exit fullscreen" : "Fullscreen";
+}
+els.fullscreen.addEventListener("click", async () => {
   if (document.fullscreenElement) {
-    document.exitFullscreen();
+    await document.exitFullscreen();
+  } else if (els.stageWrap.classList.contains("expanded")) {
+    els.stageWrap.classList.remove("expanded");
   } else {
-    els.stageWrap.requestFullscreen();
+    try {
+      if (!els.stageWrap.requestFullscreen) throw new Error("Fullscreen unavailable");
+      await els.stageWrap.requestFullscreen();
+    } catch {
+      // iPhone browsers may not support fullscreen for arbitrary elements.
+      els.stageWrap.classList.add("expanded");
+    }
   }
+  updateFullscreenLabel();
+  syncStageSize();
 });
 els.themeButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -458,6 +511,11 @@ window.addEventListener("keydown", (event) => {
   const largeStep = Math.max(120, els.stage.clientHeight * 0.45);
 
   switch (event.key) {
+    case "Escape":
+      els.stageWrap.classList.remove("expanded");
+      updateFullscreenLabel();
+      syncStageSize();
+      break;
     case " ":
     case "Spacebar":
       event.preventDefault();

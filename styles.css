@@ -438,3 +438,82 @@ body[data-theme="amber"] .fade-bottom {
     margin-top: -42px;
   }
 }
+
+/* Keep the prompter and its transport in one viewport, including fullscreen. */
+.stage-wrap {
+  height: 100dvh;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.stage {
+  height: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.stage-controls {
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-top: 1px solid var(--stage-line);
+}
+
+.speed-control {
+  display: grid;
+  grid-template-columns: auto minmax(60px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.speed-control label,
+.speed-control output {
+  color: var(--stage-muted);
+}
+
+.speed-control input {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.speed-control output { grid-column: 3; }
+.stage-controls button { min-height: 44px; }
+.stage-topline > div:first-child { min-width: 0; }
+.stage-topline h2, .lyrics { overflow-wrap: anywhere; }
+select { min-width: 0; }
+
+.stage-wrap:fullscreen,
+.stage-wrap.expanded {
+  height: 100dvh;
+  padding: 12px clamp(12px, 3vw, 40px);
+}
+
+.stage-wrap.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+@media (max-width: 860px), (hover: none) and (max-height: 500px) {
+  body { overflow: auto; }
+  .app-shell { height: auto; grid-template-columns: minmax(0, 1fr); }
+  .control-panel { order: 2; height: auto; padding: 18px; }
+  .stage-wrap { order: 1; padding: 12px 14px; min-height: 0; }
+  .stage { height: auto; padding-top: 24px; padding-bottom: 24px; }
+  .stage-topline { padding-bottom: 8px; }
+  .stage-topline h2 { font-size: 24px; }
+}
+
+@media (max-height: 500px) {
+  .stage-kicker, .stage-artist { display: none; }
+  .stage-topline h2 { font-size: 20px; margin: 0; }
+  .status-pill { padding: 4px 10px; }
+  .stage-controls { grid-template-columns: minmax(0, 1fr) minmax(200px, 1fr); }
+  .stage { padding-top: 12px; padding-bottom: 12px; }
+}
