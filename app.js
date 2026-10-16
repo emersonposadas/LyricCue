@@ -317,6 +317,9 @@ function setPlaying(nextState) {
   els.statusPill.textContent = isPlaying ? "Rolling" : "Ready";
 
   if (isPlaying) {
+    // Returning from mobile settings can leave most of the stage above the
+    // viewport. Bring the lyrics back into view when playback resumes.
+    els.stageWrap.scrollIntoView({ block: "start", behavior: "instant" });
     lastFrame = performance.now();
     scrollCeiling = maxScroll;
     animationId = requestAnimationFrame(scrollLoop);

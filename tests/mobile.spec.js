@@ -85,3 +85,27 @@ test('native fullscreen keeps controls accessible and exits cleanly', async ({ p
   await page.locator('#fullscreen').click();
   await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
 });
+
+test('resume after changing paused text, spacing, contrast and speed', async ({ page }) => {
+  await speed(page, 60);
+  await page.locator('#playPause').click();
+  await page.waitForTimeout(500);
+  for (const theme of ['paper', 'amber', 'stage']) {
+    await page.locator('#playPause').click();
+    for (const [id, value] of [['fontSize', theme === 'amber' ? '30' : '80'], ['lineHeight', theme === 'amber' ? '110' : '170']]) {
+      await page.locator(`#${id}`).fill(value);
+    }
+    await page.locator(`[data-theme="${theme}"]`).click();
+    await expect(page.locator('body')).toHaveAttribute('data-theme', theme);
+    const paused = await offset(page);
+    await page.waitForTimeout(200);
+    expect(await offset(page)).toBe(paused);
+    await page.locator('#playPause').click();
+    await expect(page.locator('#stage')).toBeInViewport({ ratio: 1 });
+    const resumed = await offset(page);
+    expect(resumed).toBeGreaterThan(0);
+    await page.waitForTimeout(500);
+    expect(await offset(page)).toBeGreaterThan(resumed + 15);
+    await expect(page.locator('#playLabel')).toHaveText('Pause');
+  }
+});
