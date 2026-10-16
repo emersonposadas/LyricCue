@@ -9,8 +9,12 @@
       "file": "songs/total-ya-se-fue.txt"
     },
     {
-      "id": "hermosisimo-lucer",
+      "id": "hermosisimo-lucero",
       "file": "songs/hermosisimo-lucero.txt"
+    },
+    {
+      "id": "flor-de-capomo",
+      "file": "songs/flor-de-capomo.txt"
     }
   ]
 }
