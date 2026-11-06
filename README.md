@@ -108,3 +108,18 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome npm test
 Tests cover portrait (390×844), landscape (844×390 and 932×430), and desktop (1440×900): control visibility, actual lyric movement, speed changes, pause/restart, rotation during playback, native and fallback fullscreen, and malformed browser storage. Mobile projects also exercise touch swipes and tapping the speed slider. Layout screenshots are written to `test-results/`.
 
 These are automated Chrome mobile-emulation tests; physical Android/iPhone testing and iOS Safari validation remain separate checks.
+
+## Lectura a distancia
+
+En **Modo de lectura**, selecciona **Una pantalla** para mostrar toda la canción o
+**Dos columnas** para repartir estrofas completas: primero se lee la columna
+izquierda, luego la derecha. El tamaño se ajusta automáticamente al espacio
+ disponible, también al cambiar de orientación o entrar en pantalla completa.
+El control de espaciado sigue disponible; el tamaño manual y la reproducción
+se habilitan de nuevo al volver a **Desplazamiento**.
+
+**Colores por estrofa** alterna cuatro colores de alto contraste. Separa los
+segmentos con líneas en blanco o encabezados como `[Coro]`. Los colores se
+adaptan al fondo claro de Paper y se pueden desactivar. Para canciones largas,
+el ajuste puede producir letra pequeña: usa pantalla completa o desplazamiento
+si necesitas letras mayores para leer a distancia.

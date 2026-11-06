@@ -54,6 +54,9 @@ End on the hand signal`
 ];
 
 const els = {
+  readingMode: document.querySelector("#readingMode"),
+  segmentColors: document.querySelector("#segmentColors"),
+  fitHint: document.querySelector("#fitHint"),
   songSelect: document.querySelector("#songSelect"),
   deleteSong: document.querySelector("#deleteSong"),
   saveSong: document.querySelector("#saveSong"),
@@ -231,27 +234,79 @@ function selectSong(id) {
 function renderLyrics(text) {
   els.lyricsDisplay.innerHTML = "";
   const fragment = document.createDocumentFragment();
-  const lines = text.split("\n");
-
-  lines.forEach((line, index) => {
-    const node = document.createElement("div");
-    const trimmed = line.trim();
-    const isSection = trimmed.startsWith("[") && trimmed.endsWith("]");
-
-    if (isSection) {
-      node.className = "section";
-      node.textContent = trimmed.slice(1, -1);
-    } else {
-      node.textContent = line || "\u00a0";
-    }
-
-    fragment.append(node);
-    if (index !== lines.length - 1) {
-      fragment.append(document.createTextNode("\n"));
-    }
+  const blocks = text.replace(/\r\n/g, "\n").trim().split(/\n\s*\n|\n(?=\s*\[)/).filter(Boolean);
+  blocks.forEach((block, index) => {
+    const segment = document.createElement("section");
+    segment.className = "lyric-segment";
+    segment.dataset.color = index % 4;
+    block.split("\n").forEach(line => {
+      const node = document.createElement("div");
+      const trimmed = line.trim();
+      const isSection = trimmed.startsWith("[") && trimmed.endsWith("]");
+      node.className = isSection ? "section" : "lyric-line";
+      node.textContent = isSection ? trimmed.slice(1, -1) : line;
+      segment.append(node);
+    });
+    fragment.append(segment);
   });
-
   els.lyricsDisplay.append(fragment);
+  scheduleStageSync(0);
+}
+
+function fitLyrics() {
+  const fitting = els.readingMode.value !== "scroll";
+  els.stageWrap.dataset.reading = els.readingMode.value;
+  els.lyricsDisplay.classList.toggle("colored", els.segmentColors.checked);
+  els.playPause.disabled = fitting;
+  els.scrollSpeed.disabled = fitting;
+  els.fontSize.disabled = fitting;
+  if (!fitting) {
+    els.lyricsDisplay.style.removeProperty("font-size");
+    els.fontSizeValue.value = `${els.fontSize.value}px`;
+    els.fitHint.textContent = "";
+    // Unwrap the columns when returning to scrolling.
+    els.lyricsDisplay.replaceChildren(...els.lyricsDisplay.querySelectorAll(".lyric-segment"));
+    return;
+  }
+  const segments = [...els.lyricsDisplay.querySelectorAll(".lyric-segment")];
+  const left = document.createElement("div");
+  const right = document.createElement("div");
+  left.className = right.className = "lyric-column";
+  left.append(...segments);
+  els.lyricsDisplay.replaceChildren(left);
+  const two = els.readingMode.value === "columns" && segments.length > 1;
+  els.lyricsDisplay.classList.toggle("two-columns", two);
+  if (two) els.lyricsDisplay.append(right);
+  const height = els.stage.clientHeight;
+  function measure(size) {
+    els.lyricsDisplay.style.fontSize = `${size}px`;
+    if (two) {
+      const heights = segments.map(el => el.getBoundingClientRect().height + size * 0.55);
+      const total = heights.reduce((sum, value) => sum + value, 0);
+      let sum = 0, best = Infinity, split = 1;
+      for (let i = 0; i < heights.length - 1; i++) {
+        sum += heights[i];
+        const difference = Math.abs(total - 2 * sum);
+        if (difference < best) { best = difference; split = i + 1; }
+      }
+      left.replaceChildren(...segments.slice(0, split));
+      right.replaceChildren(...segments.slice(split));
+    }
+    return els.lyricsDisplay.getBoundingClientRect().height <= height &&
+      els.lyricsDisplay.scrollWidth <= els.stage.clientWidth;
+  }
+  let low = 1, high = 180;
+  for (let i = 0; i < 12; i++) {
+    const mid = (low + high) / 2;
+    if (measure(mid)) low = mid; else high = mid;
+  }
+  const size = Math.floor(low * 10) / 10;
+  measure(size);
+  els.fontSizeValue.value = `${size}px (auto)`;
+  els.fitHint.textContent = size < 22
+    ? "Letra pequeña: usa pantalla completa o desplazamiento para leer a distancia."
+    : "Tamaño automático. Usa pantalla completa para aprovechar más espacio.";
+  els.statusPill.textContent = "Fits";
 }
 
 function slugify(value, index) {
@@ -290,10 +345,11 @@ function scheduleStageSync(progress = getScrollProgress()) {
 
   settingsFrame = requestAnimationFrame(() => {
     settingsFrame = null;
+    fitLyrics();
     scrollCeiling = getMaxScroll();
     setPromptOffset(progress * scrollCeiling);
 
-    if (!isPlaying && promptOffset <= 1) {
+    if (els.readingMode.value === "scroll" && !isPlaying && promptOffset <= 1) {
       els.statusPill.textContent = "Ready";
     }
   });
@@ -349,6 +405,7 @@ function scrollLoop(timestamp) {
 }
 
 function getMaxScroll() {
+  if (els.readingMode.value !== "scroll") return 0;
   const stageHeight = els.stage.clientHeight;
   const lyricHeight = els.lyricsDisplay.offsetHeight;
   return Math.max(stageHeight * 0.85, lyricHeight - stageHeight * 0.62);
@@ -418,6 +475,12 @@ function deleteSong() {
   selectSong(selectedId);
 }
 
+els.readingMode.addEventListener("change", () => {
+  setPlaying(false);
+  restartScroll();
+  scheduleStageSync(0);
+});
+els.segmentColors.addEventListener("change", () => scheduleStageSync());
 els.songSelect.addEventListener("change", (event) => selectSong(event.target.value));
 els.saveSong.addEventListener("click", saveSong);
 els.deleteSong.addEventListener("click", deleteSong);

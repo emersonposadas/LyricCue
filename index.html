@@ -41,6 +41,18 @@
           <textarea id="lyricEditor" spellcheck="false"></textarea>
         </section>
 
+        <section class="control-section">
+          <label for="readingMode">Modo de lectura</label>
+          <select id="readingMode">
+            <option value="scroll">Desplazamiento</option>
+            <option value="fit">Una pantalla</option>
+            <option value="columns">Dos columnas</option>
+          </select>
+          <label class="checkbox-label"><input id="segmentColors" type="checkbox" checked /> Colores por estrofa</label>
+          <p class="control-hint">Separa las estrofas con una línea en blanco. En dos columnas, lee primero la izquierda y luego la derecha.</p>
+          <p class="control-hint" id="fitHint" aria-live="polite"></p>
+        </section>
+
         <section class="control-section compact-grid">
           <label for="fontSize">Text</label>
           <output id="fontSizeValue" for="fontSize">64px</output>
