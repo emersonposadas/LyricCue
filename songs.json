@@ -19,6 +19,10 @@
     {
       "id": "eslabon-por-eslabon",
       "file": "songs/eslabon-por-eslabon.txt"
+    },
+    {
+      "id": "la-chona",
+      "file": "songs/la-chona.txt"
     }
   ]
 }
