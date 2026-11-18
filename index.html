@@ -31,6 +31,16 @@
           </div>
         </section>
 
+        <section class="control-section song-player" aria-label="Reproductor de la canción">
+          <span class="field-label">Escuchar canción</span>
+          <div id="songPlayer"></div>
+          <label for="playbackRate">Velocidad de la canción</label>
+          <select id="playbackRate" disabled><option value="1">1× (normal)</option></select>
+          <p id="rateHint" class="control-hint" aria-live="polite">Disponible al cargar el vídeo.</p>
+          <p id="playerHint" class="control-hint" aria-live="polite"></p>
+          <a id="songSource" target="_blank" rel="noopener noreferrer" hidden>Abrir en YouTube</a>
+        </section>
+
         <section class="control-section">
           <div class="section-head">
             <label for="lyricEditor">Lyrics</label>

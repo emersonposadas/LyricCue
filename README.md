@@ -123,3 +123,31 @@ segmentos con líneas en blanco o encabezados como `[Coro]`. Los colores se
 adaptan al fondo claro de Paper y se pueden desactivar. Para canciones largas,
 el ajuste puede producir letra pequeña: usa pantalla completa o desplazamiento
 si necesitas letras mayores para leer a distancia.
+
+## Escuchar canciones
+
+Añade una propiedad opcional `"url"` a la canción en `songs.json`:
+
+```json
+{
+  "id": "me-persigue-tu-sombra",
+  "file": "songs/me-persigue-tu-sombra.txt",
+  "url": "https://www.youtube.com/watch?v=ULxcmMgsxf4"
+}
+```
+
+El reproductor aparece debajo del selector de canciones. Pulsa play en el vídeo;
+**Start** sigue controlando únicamente el desplazamiento de la letra. Cambiar de
+canción detiene el vídeo anterior. Las copias guardadas con **Save** conservan el enlace.
+Se admiten enlaces de YouTube `watch`, `youtu.be`, `shorts`, `live` y `embed`.
+En móvil, el reproductor está en el panel debajo de la letra; en pantalla completa
+el panel queda fuera de la vista y la música puede seguir sonando.
+
+Se requiere conexión a YouTube y que el vídeo permita reproducción embebida.
+Si YouTube impide reproducirlo, usa **Abrir en YouTube**. Ejecuta la aplicación
+con `npm run dev` para probarla en `http://localhost:4173`.
+
+El selector **Velocidad de la canción** muestra las velocidades admitidas por el
+vídeo de YouTube y se sincroniza con su menú de reproducción. La API embebida no
+permite garantizar incrementos arbitrarios de 0,1. La velocidad musical y la del
+desplazamiento de la letra son independientes.

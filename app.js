@@ -54,6 +54,11 @@ End on the hand signal`
 ];
 
 const els = {
+  playbackRate: document.querySelector("#playbackRate"),
+  rateHint: document.querySelector("#rateHint"),
+  songPlayer: document.querySelector("#songPlayer"),
+  playerHint: document.querySelector("#playerHint"),
+  songSource: document.querySelector("#songSource"),
   readingMode: document.querySelector("#readingMode"),
   segmentColors: document.querySelector("#segmentColors"),
   fitHint: document.querySelector("#fitHint"),
@@ -142,6 +147,7 @@ async function loadLibrarySong(song, index) {
         title: song.title || parsed.title,
         artist: song.artist || parsed.artist,
         lyrics: parsed.lyrics,
+        url: song.url,
         builtIn: true
       };
     } catch {
@@ -156,6 +162,7 @@ async function loadLibrarySong(song, index) {
     title: song.title,
     artist: song.artist || "",
     lyrics: song.lyrics,
+    url: song.url,
     builtIn: true
   };
 }
@@ -226,9 +233,115 @@ function selectSong(id) {
   els.stageArtist.textContent = song.artist || "Unknown artist";
   els.deleteSong.disabled = Boolean(song.builtIn);
   els.deleteSong.style.opacity = song.builtIn ? "0.45" : "1";
+  renderSongPlayer(song);
   renderLyrics(song.lyrics);
   restartScroll();
   renderSongOptions();
+}
+
+function youtubeVideoId(value) {
+  try {
+    const url = new URL(value);
+    if (!["https:", "http:"].includes(url.protocol)) return null;
+    const host = url.hostname.toLowerCase();
+    let id;
+    if (host === "youtu.be") {
+      id = url.pathname.slice(1);
+    } else if (["youtube.com", "www.youtube.com", "m.youtube.com", "youtube-nocookie.com", "www.youtube-nocookie.com"].includes(host)) {
+      id = url.pathname === "/watch"
+        ? url.searchParams.get("v")
+        : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)\/?$/)?.[1];
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id || "") ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+let youtubePlayer = null;
+let youtubeApiPromise;
+function loadYouTubeApi() {
+  if (window.YT?.Player) return Promise.resolve();
+  if (!youtubeApiPromise) {
+    youtubeApiPromise = new Promise((resolve, reject) => {
+      window.onYouTubeIframeAPIReady = resolve;
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.onerror = reject;
+      document.head.append(script);
+    });
+  }
+  return youtubeApiPromise;
+}
+
+function syncPlaybackRates(event) {
+  if (event.target !== youtubePlayer) return;
+  const rates = event.target.getAvailablePlaybackRates();
+  els.playbackRate.replaceChildren(...rates.map(rate => {
+    const option = document.createElement("option");
+    option.value = rate;
+    option.textContent = rate === 1 ? "1× (normal)" : `${rate}×`;
+    return option;
+  }));
+  els.playbackRate.value = String(event.target.getPlaybackRate());
+  els.playbackRate.disabled = rates.length < 2;
+  els.rateHint.textContent = rates.length < 2
+    ? "Este vídeo solo ofrece velocidad normal."
+    : "Velocidades disponibles para este vídeo. No cambia el desplazamiento de la letra.";
+}
+els.playbackRate.addEventListener("change", () => {
+  if (!youtubePlayer || els.playbackRate.disabled) return;
+  const rate = Number(els.playbackRate.value);
+  youtubePlayer.setPlaybackRate(rate);
+  // Show the confirmed rate; the event will update it if the request succeeds.
+  els.playbackRate.value = String(youtubePlayer.getPlaybackRate());
+});
+
+function renderSongPlayer(song) {
+  if (youtubePlayer) youtubePlayer.destroy();
+  youtubePlayer = null;
+  els.playbackRate.replaceChildren(new Option("1× (normal)", "1"));
+  els.playbackRate.disabled = true;
+  els.rateHint.textContent = "Disponible al cargar el vídeo.";
+  // Removing the previous iframe also stops its audio when changing songs.
+  els.songPlayer.replaceChildren();
+  els.songSource.hidden = true;
+  els.songSource.removeAttribute("href");
+  const id = youtubeVideoId(song.url);
+  if (!id) {
+    els.rateHint.textContent = "Añade un enlace de YouTube para controlar la velocidad.";
+    els.playerHint.textContent = song.url
+      ? "No se reconoce esta URL. Usa un enlace de vídeo de YouTube."
+      : "Esta canción no tiene un enlace de YouTube añadido.";
+    return;
+  }
+  const player = document.createElement("iframe");
+  player.src = `https://www.youtube.com/embed/${id}?playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+  player.title = `Reproducir ${song.title}`;
+  player.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+  player.allowFullscreen = true;
+  player.referrerPolicy = "strict-origin-when-cross-origin";
+  els.songPlayer.append(player);
+  loadYouTubeApi().then(() => {
+    if (!player.isConnected) return;
+    youtubePlayer = new YT.Player(player, {
+      events: {
+        onReady: syncPlaybackRates,
+        onStateChange: syncPlaybackRates,
+        onPlaybackRateChange: syncPlaybackRates,
+        onError: () => {
+          if (!player.isConnected) return;
+          els.playbackRate.disabled = true;
+          els.rateHint.textContent = "No se pudo cargar el vídeo. Prueba el enlace de YouTube.";
+        }
+      }
+    });
+  }).catch(() => {
+    if (player.isConnected) els.rateHint.textContent = "Usa el menú del vídeo para cambiar la velocidad.";
+  });
+  els.songSource.href = `https://www.youtube.com/watch?v=${id}`;
+  els.songSource.hidden = false;
+  els.playerHint.textContent = "Pulsa ▶ en el vídeo para escuchar. Start controla solo el desplazamiento de la letra. Si el vídeo no está disponible aquí, ábrelo en YouTube.";
 }
 
 function renderLyrics(text) {
@@ -281,7 +394,7 @@ function fitLyrics() {
   function measure(size) {
     els.lyricsDisplay.style.fontSize = `${size}px`;
     if (two) {
-      const heights = segments.map(el => el.getBoundingClientRect().height + size * 0.55);
+      const heights = segments.map(el => el.getBoundingClientRect().height + parseFloat(getComputedStyle(el).marginBottom));
       const total = heights.reduce((sum, value) => sum + value, 0);
       let sum = 0, best = Infinity, split = 1;
       for (let i = 0; i < heights.length - 1; i++) {
@@ -450,6 +563,7 @@ function saveSong() {
       title,
       artist,
       lyrics,
+      url: active.url,
       builtIn: false
     };
     songs.push(newSong);

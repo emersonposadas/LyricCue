@@ -2,27 +2,33 @@
   "songs": [
     {
       "id": "me-persigue-tu-sombra",
-      "file": "songs/me-persigue-tu-sombra.txt"
+      "file": "songs/me-persigue-tu-sombra.txt",
+      "url": "https://www.youtube.com/watch?v=8_el0ipJ0ko"
     },
     {
       "id": "total-ya-se-fue",
-      "file": "songs/total-ya-se-fue.txt"
+      "file": "songs/total-ya-se-fue.txt",
+      "url": "https://www.youtube.com/watch?v=7oB6HVdFG-c"
     },
     {
       "id": "hermosisimo-lucero",
-      "file": "songs/hermosisimo-lucero.txt"
+      "file": "songs/hermosisimo-lucero.txt",
+      "url": "https://www.youtube.com/watch?v=fjXMDuqxU40"
     },
     {
       "id": "flor-de-capomo",
-      "file": "songs/flor-de-capomo.txt"
+      "file": "songs/flor-de-capomo.txt",
+      "url": "https://www.youtube.com/watch?v=n2FGb1_H_Ok"
     },
     {
       "id": "eslabon-por-eslabon",
-      "file": "songs/eslabon-por-eslabon.txt"
+      "file": "songs/eslabon-por-eslabon.txt",
+      "url": "https://www.youtube.com/watch?v=UFJnVEy0eGI"
     },
     {
       "id": "la-chona",
-      "file": "songs/la-chona.txt"
+      "file": "songs/la-chona.txt",
+      "url": "https://www.youtube.com/watch?v=ULxcmMgsxf4"
     }
   ]
 }
