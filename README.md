@@ -30,7 +30,7 @@ Select a song, then choose **Modo de lectura**:
 | --- | --- |
 | **Desplazamiento** | Scrolls the lyrics at an adjustable speed. **Text** sets the font size; **Start/Pause** controls scrolling. |
 | **Una pantalla** | Fits the entire song into the available stage area. |
-| **Dos columnas** | Fits complete verses into two columns, read left to right. |
+| **Dos columnas** | Default view. Fits complete verses into two columns, read left to right. |
 
 Fitted modes resize the text automatically when the viewport changes or fullscreen starts. They use compact margins and hide the scrolling speed and Start controls. **Spacing** remains adjustable; manual font size is disabled until you return to scrolling. Long songs can still require small text: use fullscreen or scrolling to improve readability at a distance.
 
@@ -48,7 +48,7 @@ Music playback and lyric scrolling are independent. **Start**, **Speed**, and th
 
 ### Fullscreen music controls
 
-Fullscreen shows the lyric stage and its controls, hiding the editor and embedded video panel. The music can continue playing. These buttons appear under **Música** in both native fullscreen and the expanded-stage fallback:
+Fullscreen shows the lyric stage and its controls, hiding the control panel and embedded video. The music can continue playing. These buttons appear under **Música** in both native fullscreen and the expanded-stage fallback:
 
 | Button | YouTube action |
 | --- | --- |
@@ -78,7 +78,7 @@ The published library currently contains six songs plus an alternate backing-tra
 - Eslabón por Eslabón — Los Invasores De Nuevo León (original and **[PISTA]** versions)
 - La Chona — Los Tucanes de Tijuana
 
-The title, artist, and lyrics can be edited locally. **Save** creates a custom copy of a published song, preserving its video URL; saving an existing custom song updates that copy. Custom songs are stored in that browser's `localStorage`, not uploaded or synchronized to GitHub. Only custom songs can be deleted through the UI. Clearing browser storage removes those copies.
+Lyrics load exclusively from `songs/*.txt`, indexed in `songs.json`. The lyric editor, title/artist inputs, and Save/Delete buttons have been removed. Previously saved browser songs are no longer loaded.
 
 ### Add a published song
 
@@ -108,7 +108,7 @@ Register it in the `songs` array in `songs.json`. For example, the existing La C
 
 Use a unique `id` and the matching file path for a new song. The `url` is optional. Supported YouTube link formats include `watch?v=`, `youtu.be`, `shorts`, `live`, and `embed`. Other providers are not supported.
 
-The loader reads `Title:` and `Artist:` from the text file; the filename supplies a fallback title. Library entries can also supply title and artist overrides, or inline `title`, `artist`, and `lyrics` instead of a file. If no published songs can be loaded, the app falls back to its built-in sample cues.
+The loader reads `Title:` and `Artist:` from the text file; the filename supplies a fallback title. Library entries can also supply title and artist overrides. If no files can be loaded, the app displays an empty library message.
 
 ### Reuse lyrics with a different video
 
@@ -128,7 +128,7 @@ stage heading, without changing the shared text file:
 The original entry can keep its existing video URL and inherit its title from
 the text file. Editing that file updates the lyrics for both versions.
 
-Commit the text file and `songs.json` to publish the song. Changes made using the browser editor do not modify repository files.
+Commit the text file and `songs.json` to publish the song.
 
 ## Keyboard shortcuts
 
@@ -166,7 +166,7 @@ Tests cover desktop (1440×900), phone portrait (390×844), and two phone landsc
 - Lyric scrolling, speed, pause/restart, rotation, touch gestures, and theme changes.
 - Fitted text, intact verse ordering, two-column layout, and verse colors.
 - Native and fallback fullscreen controls.
-- Song URL handling, custom-copy persistence, invalid URLs, and malformed browser storage.
+- Song URL handling, invalid URLs, and malformed browser storage.
 - Supported music speeds and fullscreen Play, Pause, Stop, and Ir al inicio actions.
 
 Player integration tests use intercepted embed content and a mocked YouTube API for deterministic assertions. They do not verify remote video availability, advertisements, or authenticated Premium playback. Real YouTube playback needs a separate manual smoke check. Mobile tests emulate Chrome; physical Android/iPhone and Safari checks remain separate. Layout screenshots are written to `test-results/`.

@@ -642,3 +642,5 @@ body[data-theme="paper"] .lyrics.colored .lyric-segment[data-color="3"] { color:
 @media (pointer: coarse) {
   .stage-wrap:is(:fullscreen, .expanded) .stage-controls button { min-height: 40px; }
 }
+
+.control-section[hidden] { display: none; }

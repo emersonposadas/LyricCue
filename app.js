@@ -1,57 +1,4 @@
-const storageKey = "lyriccue.customSongs.v1";
 const publishedSongsPath = "songs.json";
-
-const starterSongs = [
-  {
-    id: "warmup-cue",
-    title: "Warmup Cue",
-    artist: "LyricCue",
-    builtIn: true,
-    lyrics: `[Intro]
-Breathe in, settle the room
-Count four, listen together
-
-[Verse]
-First line lands clear and steady
-Second line waits for the snare
-Keep the vowel open
-Keep the ending light
-
-[Chorus]
-Lift the phrase
-Hold the center
-Let the harmony arrive
-
-[Bridge]
-Eyes forward
-Shoulders easy
-Come back in on the downbeat`
-  },
-  {
-    id: "setlist-marker",
-    title: "Setlist Marker",
-    artist: "LyricCue",
-    builtIn: true,
-    lyrics: `[Cue]
-Guitar starts alone
-Keys enter after two bars
-
-[Verse 1]
-Lead vocal stays close
-Backing vocals answer low
-Watch the drummer for the lift
-
-[Chorus]
-Everyone in
-Big consonants
-Cut together on the last word
-
-[Outro]
-Repeat softly
-Slow the final line
-End on the hand signal`
-  }
-];
 
 const els = {
   playbackRate: document.querySelector("#playbackRate"),
@@ -63,11 +10,6 @@ const els = {
   segmentColors: document.querySelector("#segmentColors"),
   fitHint: document.querySelector("#fitHint"),
   songSelect: document.querySelector("#songSelect"),
-  deleteSong: document.querySelector("#deleteSong"),
-  saveSong: document.querySelector("#saveSong"),
-  songTitle: document.querySelector("#songTitle"),
-  songArtist: document.querySelector("#songArtist"),
-  lyricEditor: document.querySelector("#lyricEditor"),
   fontSize: document.querySelector("#fontSize"),
   fontSizeValue: document.querySelector("#fontSizeValue"),
   scrollSpeed: document.querySelector("#scrollSpeed"),
@@ -88,8 +30,8 @@ const els = {
   themeButtons: [...document.querySelectorAll("[data-theme]")]
 };
 
-let songs = [...starterSongs];
-let selectedId = starterSongs[0].id;
+let songs = [];
+let selectedId = null;
 let isPlaying = false;
 let lastFrame = 0;
 let animationId = null;
@@ -98,19 +40,8 @@ let promptOffset = 0;
 let settingsFrame = null;
 
 async function loadSongs() {
-  const publishedSongs = await loadPublishedSongs();
-  let saved = [];
-  try {
-    const stored = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    if (Array.isArray(stored)) {
-      saved = stored.filter(song => song && typeof song.id === "string" &&
-        typeof song.title === "string" && typeof song.lyrics === "string");
-    }
-  } catch {
-    // Playback remains available when storage is blocked or damaged.
-  }
-  songs = [...publishedSongs, ...saved];
-  selectedId = songs[0]?.id || starterSongs[0].id;
+  songs = await loadPublishedSongs();
+  selectedId = songs[0]?.id || null;
 }
 
 async function loadPublishedSongs() {
@@ -121,7 +52,7 @@ async function loadPublishedSongs() {
     const library = Array.isArray(data) ? data : data.songs;
 
     if (!Array.isArray(library) || library.length === 0) {
-      return starterSongs;
+      return [];
     }
 
     const loadedSongs = await Promise.all(
@@ -129,14 +60,14 @@ async function loadPublishedSongs() {
     );
 
     const available = loadedSongs.filter(Boolean);
-    return available.length ? available : starterSongs;
+    return available;
   } catch {
-    return starterSongs;
+    return [];
   }
 }
 
 async function loadLibrarySong(song, index) {
-  if (song.file) {
+  if (song && typeof song.file === "string" && /^songs\/[^/]+\.txt$/.test(song.file)) {
     try {
       const response = await fetch(song.file, { cache: "no-store" });
       if (!response.ok) throw new Error("Song file unavailable");
@@ -155,16 +86,7 @@ async function loadLibrarySong(song, index) {
     }
   }
 
-  if (!song.title || !song.lyrics) return null;
-
-  return {
-    id: song.id || slugify(song.title, index),
-    title: song.title,
-    artist: song.artist || "",
-    lyrics: song.lyrics,
-    url: song.url,
-    builtIn: true
-  };
+  return null;
 }
 
 function parseSongText(text, filePath) {
@@ -199,13 +121,6 @@ function parseSongText(text, filePath) {
   };
 }
 
-function saveCustomSongs() {
-  localStorage.setItem(
-    storageKey,
-    JSON.stringify(songs.filter((song) => !song.builtIn))
-  );
-}
-
 function renderSongOptions() {
   els.songSelect.innerHTML = "";
 
@@ -225,14 +140,9 @@ function currentSong() {
 
 function selectSong(id) {
   selectedId = id;
-  const song = currentSong();
-  els.songTitle.value = song.title;
-  els.songArtist.value = song.artist || "";
-  els.lyricEditor.value = song.lyrics;
+  const song = currentSong() || { title: "No hay canciones disponibles", artist: "Revisa songs.json y los archivos songs/*.txt", lyrics: "" };
   els.stageTitle.textContent = song.title;
   els.stageArtist.textContent = song.artist || "Unknown artist";
-  els.deleteSong.disabled = Boolean(song.builtIn);
-  els.deleteSong.style.opacity = song.builtIn ? "0.45" : "1";
   renderSongPlayer(song);
   renderLyrics(song.lyrics);
   restartScroll();
@@ -575,44 +485,6 @@ function nudgePrompt(delta) {
   }
 }
 
-function saveSong() {
-  const title = els.songTitle.value.trim() || "Untitled Cue";
-  const artist = els.songArtist.value.trim();
-  const lyrics = els.lyricEditor.value.trimEnd();
-  const active = currentSong();
-
-  if (active.builtIn) {
-    const newSong = {
-      id: `custom-${Date.now()}`,
-      title,
-      artist,
-      lyrics,
-      url: active.url,
-      builtIn: false
-    };
-    songs.push(newSong);
-    selectedId = newSong.id;
-  } else {
-    active.title = title;
-    active.artist = artist;
-    active.lyrics = lyrics;
-  }
-
-  saveCustomSongs();
-  renderSongOptions();
-  selectSong(selectedId);
-}
-
-function deleteSong() {
-  const active = currentSong();
-  if (active.builtIn) return;
-
-  songs = songs.filter((song) => song.id !== active.id);
-  selectedId = songs[0].id;
-  saveCustomSongs();
-  selectSong(selectedId);
-}
-
 els.readingMode.addEventListener("change", () => {
   setPlaying(false);
   restartScroll();
@@ -620,20 +492,6 @@ els.readingMode.addEventListener("change", () => {
 });
 els.segmentColors.addEventListener("change", () => scheduleStageSync());
 els.songSelect.addEventListener("change", (event) => selectSong(event.target.value));
-els.saveSong.addEventListener("click", saveSong);
-els.deleteSong.addEventListener("click", deleteSong);
-els.lyricEditor.addEventListener("input", () => {
-  const title = els.songTitle.value.trim() || currentSong().title;
-  els.stageTitle.textContent = title;
-  renderLyrics(els.lyricEditor.value);
-  scheduleStageSync();
-});
-els.songTitle.addEventListener("input", () => {
-  els.stageTitle.textContent = els.songTitle.value.trim() || "Untitled Cue";
-});
-els.songArtist.addEventListener("input", () => {
-  els.stageArtist.textContent = els.songArtist.value.trim() || "Unknown artist";
-});
 els.fontSize.addEventListener("input", updateTypography);
 els.lineHeight.addEventListener("input", updateTypography);
 els.scrollSpeed.addEventListener("input", updateSpeedLabel);

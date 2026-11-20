@@ -8,7 +8,7 @@
       content="LyricCue is a rehearsal lyric prompter with readable stage contrast, smooth auto-scroll, and quick lyric selection."
     />
     <title>LyricCue</title>
-    <link rel="stylesheet" href="styles.css?v=71bbb29295df" />
+    <link rel="stylesheet" href="styles.css?v=49b9f9ae3a08" />
   </head>
   <body>
     <main class="app-shell">
@@ -23,12 +23,7 @@
 
         <section class="control-section">
           <label for="songSelect">Song</label>
-          <div class="select-row">
-            <select id="songSelect"></select>
-            <button class="icon-button" id="deleteSong" type="button" title="Delete custom lyric" aria-label="Delete custom lyric">
-              <span aria-hidden="true">×</span>
-            </button>
-          </div>
+          <select id="songSelect"></select>
         </section>
 
         <section class="control-section song-player" aria-label="Reproductor de la canción">
@@ -42,21 +37,11 @@
         </section>
 
         <section class="control-section">
-          <div class="section-head">
-            <label for="lyricEditor">Lyrics</label>
-            <button id="saveSong" class="text-button" type="button">Save</button>
-          </div>
-          <input id="songTitle" class="title-input" type="text" placeholder="Song title" />
-          <input id="songArtist" class="title-input" type="text" placeholder="Artist" />
-          <textarea id="lyricEditor" spellcheck="false"></textarea>
-        </section>
-
-        <section class="control-section">
           <label for="readingMode">Modo de lectura</label>
           <select id="readingMode">
             <option value="scroll">Desplazamiento</option>
             <option value="fit">Una pantalla</option>
-            <option value="columns">Dos columnas</option>
+            <option value="columns" selected>Dos columnas</option>
           </select>
           <label class="checkbox-label"><input id="segmentColors" type="checkbox" checked /> Colores por estrofa</label>
           <p class="control-hint">Separa las estrofas con una línea en blanco. En dos columnas, lee primero la izquierda y luego la derecha.</p>
@@ -85,12 +70,12 @@
 
       </aside>
 
-      <section class="stage-wrap" aria-label="Lyric stage">
+      <section class="stage-wrap" data-reading="columns" aria-label="Lyric stage">
         <header class="stage-topline">
           <div>
             <p class="stage-kicker">Now cueing</p>
-            <h2 id="stageTitle">Warmup Cue</h2>
-            <p class="stage-artist" id="stageArtist">LyricCue</p>
+            <h2 id="stageTitle">Cargando canciones…</h2>
+            <p class="stage-artist" id="stageArtist"></p>
           </div>
           <div class="status-pill" id="statusPill">Ready</div>
         </header>
@@ -129,6 +114,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=db56a1ceb8e8"></script>
+    <script src="app.js?v=2acebcb0ef66"></script>
   </body>
 </html>

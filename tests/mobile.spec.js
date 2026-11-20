@@ -8,6 +8,8 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#songSelect option').first()).toBeAttached();
   await expect(page.locator('#lyricsDisplay')).not.toBeEmpty();
+  await page.locator('#readingMode').selectOption('scroll');
+  await page.locator('.stage-wrap').evaluate(stage => stage.scrollIntoView({ block: 'start' }));
 });
 test('visible controls, playback, speed, pause, restart and live rotation', async ({ page }, testInfo) => {
   await page.screenshot({ path: testInfo.outputPath('layout.png') });
@@ -70,6 +72,8 @@ test('invalid saved data does not block initialization', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('lyriccue.customSongs.v1', '{broken'));
   await page.reload();
   await expect(page.locator('#lyricsDisplay')).not.toBeEmpty();
+  await page.locator('#readingMode').selectOption('scroll');
+  await page.locator('.stage-wrap').evaluate(stage => stage.scrollIntoView({ block: 'start' }));
   await page.locator('#playPause').click();
   await page.waitForTimeout(300);
   expect(await offset(page)).toBeGreaterThan(2);

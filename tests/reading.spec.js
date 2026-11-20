@@ -2,6 +2,9 @@ const { test, expect } = require('@playwright/test');
 
 test('whole song fits, columns preserve verses, and colors follow contrast', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('#readingMode')).toHaveValue('columns');
+  await expect(page.locator('.lyric-column')).toHaveCount(2);
+  await expect(page.locator('#lyricEditorSection, #songTitle, #songArtist, #saveSong, #deleteSong')).toHaveCount(0);
   await page.locator('#songSelect').selectOption('eslabon-por-eslabon');
   const original = await page.locator('.lyric-segment').allTextContents();
   for (const mode of ['fit', 'columns']) {
@@ -38,7 +41,7 @@ test('whole song fits, columns preserve verses, and colors follow contrast', asy
 });
 
 test('text-file indentation and blank lines survive all reading modes', async ({ page }) => {
-  await page.route('**/songs.json', route => route.fulfill({ json: { songs: [{ id: 'spacing', file: 'spacing.txt' }] } }));
+  await page.route('**/songs.json', route => route.fulfill({ json: { songs: [{ id: 'spacing', file: 'songs/spacing.txt' }] } }));
   await page.route('**/spacing.txt', route => route.fulfill({ body: 'Title: Spacing\r\nArtist: Test\r\n\r\n  First   line\r\nSecond line\r\n\r\nNext verse\r\n\r\n\r\nLast verse\r\n', contentType: 'text/plain' }));
   await page.goto('/');
   for (const mode of ['scroll', 'fit', 'columns', 'scroll']) {
@@ -50,4 +53,24 @@ test('text-file indentation and blank lines survive all reading modes', async ({
       return height >= parseFloat(getComputedStyle(node).lineHeight) - 1;
     }))).toBe(true);
   }
+});
+
+test('library uses repo files and ignores old browser songs and inline lyrics', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('lyriccue.customSongs.v1', JSON.stringify([
+    { id: 'old', title: 'Old browser song', lyrics: 'Old lyrics' }
+  ])));
+  await page.route('**/songs.json', route => route.fulfill({ json: { songs: [
+    { id: 'repo', file: 'songs/repo.txt' },
+    { id: 'inline', title: 'Inline song', lyrics: 'Inline lyrics' }
+  ] } }));
+  await page.route('**/songs/repo.txt', route => route.fulfill({ body: 'Title: Repo song\nArtist: Repo artist\n\nFirst verse\n\nSecond verse', contentType: 'text/plain' }));
+  await page.goto('/');
+  await expect(page.locator('#songSelect option')).toHaveCount(1);
+  await expect(page.locator('#stageTitle')).toHaveText('Repo song');
+  await expect(page.locator('#lyricsDisplay')).toContainText('Second verse');
+  await page.route('**/songs/repo.txt', route => route.fulfill({ status: 404 }));
+  await page.reload();
+  await expect(page.locator('#stageTitle')).toHaveText('No hay canciones disponibles');
+  await expect(page.locator('#songSelect option')).toHaveCount(0);
+  await expect(page.locator('#lyricsDisplay')).toHaveText('');
 });
