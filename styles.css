@@ -524,7 +524,8 @@ select { min-width: 0; }
 button:disabled { cursor: default; opacity: .45; }
 .lyrics { white-space: normal; }
 .lyric-line { white-space: pre-wrap; }
-.lyric-segment { margin-bottom: .55em; }
+.lyric-segment { margin-bottom: 0; }
+.lyric-line.blank-line { min-height: 1lh; }
 .lyrics.colored .lyric-segment[data-color="0"] { color: #fbfaf4; }
 .lyrics.colored .lyric-segment[data-color="1"] { color: #80dfff; }
 .lyrics.colored .lyric-segment[data-color="2"] { color: #ffdc80; }
@@ -572,7 +573,7 @@ body[data-theme="paper"] .lyrics.colored .lyric-segment[data-color="3"] { color:
 .stage-wrap[data-reading="fit"] .lyrics,
 .stage-wrap[data-reading="columns"] .lyrics { line-height: calc(var(--lyrics-line) * .85); }
 .stage-wrap[data-reading="fit"] .lyric-segment,
-.stage-wrap[data-reading="columns"] .lyric-segment { margin-bottom: .35em; }
+.stage-wrap[data-reading="columns"] .lyric-segment { margin-bottom: 0; }
 .stage-wrap[data-reading="columns"] .lyrics.two-columns { gap: clamp(12px, 1.5vw, 24px); }
 .stage-wrap[data-reading="fit"] .speed-control,
 .stage-wrap[data-reading="columns"] .speed-control,
@@ -596,4 +597,48 @@ body[data-theme="paper"] .lyrics.colored .lyric-segment[data-color="3"] { color:
 @media (max-width: 420px) {
   .music-transport { flex-wrap: wrap; }
   .music-transport .text-button { padding: 0 10px; }
+}
+
+/* Keep fullscreen controls compact so the lyrics get most of the viewport. */
+.stage-wrap:is(:fullscreen, .expanded) .stage-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding-top: 6px;
+}
+.stage-wrap:is(:fullscreen, .expanded) .music-transport {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.stage-wrap:is(:fullscreen, .expanded) .stage-controls button {
+  min-height: 32px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+.stage-wrap:is(:fullscreen, .expanded) .music-transport .text-button {
+  padding: 0 6px;
+  white-space: nowrap;
+}
+.stage-wrap:is(:fullscreen, .expanded) .transport {
+  margin-left: auto;
+  gap: 6px;
+}
+.stage-wrap:is(:fullscreen, .expanded) .icon-button {
+  width: 32px;
+  flex-basis: 32px;
+  font-size: 20px;
+}
+.stage-wrap:is(:fullscreen, .expanded) .primary-action { padding: 0 10px; }
+.stage-wrap:is(:fullscreen, .expanded) .speed-control {
+  flex: 1 1 180px;
+  gap: 8px;
+}
+.stage-wrap:is(:fullscreen, .expanded) .speed-control input { height: 32px; }
+@media (max-width: 600px) {
+  .stage-wrap:is(:fullscreen, .expanded) .stage-controls { column-gap: 6px; }
+  .stage-wrap:is(:fullscreen, .expanded) .music-transport > span { display: none; }
+}
+@media (pointer: coarse) {
+  .stage-wrap:is(:fullscreen, .expanded) .stage-controls button { min-height: 40px; }
 }

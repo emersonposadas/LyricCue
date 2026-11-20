@@ -195,7 +195,7 @@ function parseSongText(text, filePath) {
     id: metadata.id,
     title: metadata.title || fallbackTitle,
     artist: metadata.artist || "",
-    lyrics: lines.slice(lyricStart).join("\n").trim()
+    lyrics: lines.slice(lyricStart).join("\n").replace(/\n$/, "")
   };
 }
 
@@ -365,20 +365,26 @@ function renderSongPlayer(song) {
 function renderLyrics(text) {
   els.lyricsDisplay.innerHTML = "";
   const fragment = document.createDocumentFragment();
-  const blocks = text.replace(/\r\n/g, "\n").trim().split(/\n\s*\n|\n(?=\s*\[)/).filter(Boolean);
-  blocks.forEach((block, index) => {
-    const segment = document.createElement("section");
-    segment.className = "lyric-segment";
-    segment.dataset.color = index % 4;
-    block.split("\n").forEach(line => {
-      const node = document.createElement("div");
-      const trimmed = line.trim();
-      const isSection = trimmed.startsWith("[") && trimmed.endsWith("]");
-      node.className = isSection ? "section" : "lyric-line";
-      node.textContent = isSection ? trimmed.slice(1, -1) : line;
-      segment.append(node);
-    });
-    fragment.append(segment);
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  let segment = null;
+  let afterBlank = false;
+  let segmentIndex = 0;
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    const isBlank = trimmed === "";
+    const isSection = trimmed.startsWith("[") && trimmed.endsWith("]");
+    if (!segment || (!isBlank && (afterBlank || isSection))) {
+      segment = document.createElement("section");
+      segment.className = "lyric-segment";
+      segment.dataset.color = segmentIndex++ % 4;
+      fragment.append(segment);
+    }
+    const node = document.createElement("div");
+    node.className = isSection ? "section" : "lyric-line";
+    if (isBlank) node.classList.add("blank-line");
+    node.textContent = isSection ? trimmed.slice(1, -1) : line;
+    segment.append(node);
+    afterBlank = isBlank;
   });
   els.lyricsDisplay.append(fragment);
   scheduleStageSync(0);

@@ -36,3 +36,18 @@ test('whole song fits, columns preserve verses, and colors follow contrast', asy
   await page.locator('#playPause').click();
   await expect(page.locator('#playLabel')).toHaveText('Pause');
 });
+
+test('text-file indentation and blank lines survive all reading modes', async ({ page }) => {
+  await page.route('**/songs.json', route => route.fulfill({ json: { songs: [{ id: 'spacing', file: 'spacing.txt' }] } }));
+  await page.route('**/spacing.txt', route => route.fulfill({ body: 'Title: Spacing\r\nArtist: Test\r\n\r\n  First   line\r\nSecond line\r\n\r\nNext verse\r\n\r\n\r\nLast verse\r\n', contentType: 'text/plain' }));
+  await page.goto('/');
+  for (const mode of ['scroll', 'fit', 'columns', 'scroll']) {
+    await page.locator('#readingMode').selectOption(mode);
+    await expect(page.locator('.lyric-line')).toHaveCount(7);
+    expect(await page.locator('.lyric-line').allTextContents()).toEqual(['  First   line', 'Second line', '', 'Next verse', '', '', 'Last verse']);
+    await expect.poll(() => page.locator('.blank-line').evaluateAll(nodes => nodes.every(node => {
+      const height = node.getBoundingClientRect().height;
+      return height >= parseFloat(getComputedStyle(node).lineHeight) - 1;
+    }))).toBe(true);
+  }
+});

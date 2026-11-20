@@ -34,7 +34,7 @@ Select a song, then choose **Modo de lectura**:
 
 Fitted modes resize the text automatically when the viewport changes or fullscreen starts. They use compact margins and hide the scrolling speed and Start controls. **Spacing** remains adjustable; manual font size is disabled until you return to scrolling. Long songs can still require small text: use fullscreen or scrolling to improve readability at a distance.
 
-**Colores por estrofa** alternates four high-contrast verse colors. Blank lines and bracketed headings such as `[Coro]` separate segments. Choose **Stage**, **Paper**, or **Warm** for the background theme; verse colors adapt to Paper. Colors can also be disabled.
+**Colores por estrofa** alternates four high-contrast verse colors. Blank lines and bracketed headings such as `[Coro]` separate segments. Each blank line in the text file keeps one line of vertical space, including multiple blank lines between verses; indentation and spaces within lyric lines are preserved. Choose **Stage**, **Paper**, or **Warm** for the background theme; verse colors adapt to Paper. Colors can also be disabled.
 
 Scroll the mouse wheel or drag/swipe the lyric area to move through the prompt manually. The **Restart** button resets the lyrics and pauses scrolling. Rotation and viewport resizing preserve scrolling progress.
 
@@ -69,13 +69,13 @@ If an update appears missing, refresh the page with **Ctrl+Shift+R** (or **Cmd+S
 
 ## Song library and editing
 
-The published library currently contains six songs, each with a YouTube URL:
+The published library currently contains six songs plus an alternate backing-track entry, each with a YouTube URL:
 
 - Me Persigue Tu Sombra — Alegres de Terán
 - Total Ya Se Fue — Los Invasores De Nuevo León
 - Hermosísimo Lucero — Alegres de Terán
 - Flor De Capomo — Carlos y José
-- Eslabón por Eslabón — Los Invasores De Nuevo León
+- Eslabón por Eslabón — Los Invasores De Nuevo León (original and **[PISTA]** versions)
 - La Chona — Los Tucanes de Tijuana
 
 The title, artist, and lyrics can be edited locally. **Save** creates a custom copy of a published song, preserving its video URL; saving an existing custom song updates that copy. Custom songs are stored in that browser's `localStorage`, not uploaded or synchronized to GitHub. Only custom songs can be deleted through the UI. Clearing browser storage removes those copies.
@@ -109,6 +109,24 @@ Register it in the `songs` array in `songs.json`. For example, the existing La C
 Use a unique `id` and the matching file path for a new song. The `url` is optional. Supported YouTube link formats include `watch?v=`, `youtu.be`, `shorts`, `live`, and `embed`. Other providers are not supported.
 
 The loader reads `Title:` and `Artist:` from the text file; the filename supplies a fallback title. Library entries can also supply title and artist overrides, or inline `title`, `artist`, and `lyrics` instead of a file. If no published songs can be loaded, the app falls back to its built-in sample cues.
+
+### Reuse lyrics with a different video
+
+Multiple entries can reference the same text file. Give each entry a unique `id`
+and set `title` in `songs.json` to distinguish the version in the dropdown and
+stage heading, without changing the shared text file:
+
+```json
+{
+  "id": "eslabon-por-eslabon-pista",
+  "title": "Eslabón por Eslabón [PISTA]",
+  "file": "songs/eslabon-por-eslabon.txt",
+  "url": "https://www.youtube.com/watch?v=_5W93Ec1TE8"
+}
+```
+
+The original entry can keep its existing video URL and inherit its title from
+the text file. Editing that file updates the lyrics for both versions.
 
 Commit the text file and `songs.json` to publish the song. Changes made using the browser editor do not modify repository files.
 

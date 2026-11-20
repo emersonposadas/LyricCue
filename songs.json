@@ -11,6 +11,12 @@
       "url": "https://www.youtube.com/watch?v=7oB6HVdFG-c"
     },
     {
+      "id": "total-ya-se-fue-pista",
+      "file": "songs/total-ya-se-fue.txt",
+      "title": "Total Ya Se Fue [PISTA]",
+      "url": "https://www.youtube.com/watch?v=7JdQav9xCfw"
+    },
+    {
       "id": "hermosisimo-lucero",
       "file": "songs/hermosisimo-lucero.txt",
       "url": "https://www.youtube.com/watch?v=fjXMDuqxU40"
@@ -21,14 +27,50 @@
       "url": "https://www.youtube.com/watch?v=n2FGb1_H_Ok"
     },
     {
+      "id": "flor-de-capomo-pista",
+      "title": "Flor de Capomo [PISTA]",  
+      "file": "songs/flor-de-capomo.txt",
+      "url": "https://www.youtube.com/watch?v=vl2snQ7Zp8U"
+    },
+    {
       "id": "eslabon-por-eslabon",
       "file": "songs/eslabon-por-eslabon.txt",
       "url": "https://www.youtube.com/watch?v=UFJnVEy0eGI"
     },
     {
+      "id": "eslabon-por-eslabon-pista",
+      "title": "Eslabón por Eslabón [PISTA]",
+      "file": "songs/eslabon-por-eslabon.txt",
+      "url": "https://www.youtube.com/watch?v=_5W93Ec1TE8"
+    }, 
+    {
       "id": "la-chona",
       "file": "songs/la-chona.txt",
       "url": "https://www.youtube.com/watch?v=ULxcmMgsxf4"
+    },
+    {
+      "id": "la-chona-pista",
+      "title": "La Chona [PISTA]",
+      "file": "songs/la-chona.txt",
+      "url": "https://www.youtube.com/watch?v=MXTqRK7TMbE"
+    },
+    {
+      "id": "el-palomito-pista",
+      "title": "El Palomito [PISTA]",
+      "file": "songs/el-palomito.txt",
+      "url": "https://www.youtube.com/watch?v=yogv2rTZ9yA"
+    },
+    {
+      "id": "prenda-querida-pista",
+      "title": "Prenda Querida [PISTA]",
+      "file": "songs/prenda-querida.txt",
+      "url": "https://www.youtube.com/watch?v=sPVz_o6E5Wc"
+    },
+    {
+      "id": "la-cosecha-pista",
+      "title": "La Cosecha [PISTA]",
+      "file": "songs/la-cosecha.txt",
+      "url": "https://www.youtube.com/watch?v=BAtujJxqgVY"
     }
   ]
 }
