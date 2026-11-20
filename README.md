@@ -1,160 +1,177 @@
 # LyricCue
 
-LyricCue is a static rehearsal lyric prompter for showing large, high-contrast lyrics that scroll automatically during practice. It is designed for GitHub Pages, so the project can be published directly without a build step.
+LyricCue is a static rehearsal lyric prompter with large, high-contrast text, automatic scrolling, fitted reading modes, and embedded YouTube playback. It uses plain HTML, CSS, and JavaScript, with no backend or build step.
 
-## What It Does
+**Live app:** [emersonposadas.github.io/LyricCue](https://emersonposadas.github.io/LyricCue/)
 
-- Shows rehearsal lyrics in a readable stage view.
-- Scrolls lyrics automatically at an adjustable speed.
-- Loads pre-made songs from simple text files.
-- Keeps a paste/edit box for quick local rehearsal notes.
-- Supports fullscreen stage mode without the editing controls.
-- Offers keyboard controls for hands-off rehearsal.
+## Run locally
 
-## Run
+Use a local HTTP server so the app can fetch the song library and text files. Opening `index.html` directly with `file://` is not a supported way to load the library.
 
-Open `index.html` directly in a browser, or start a local server:
+With Node.js/npm and Python 3 installed:
 
 ```bash
 npm run dev
 ```
 
-Then visit `http://localhost:4173`.
+Or use Python 3 directly:
 
-## GitHub Pages
-
-This project is intentionally static. Publish the repository root with GitHub Pages and serve `index.html` directly. No build step, package install, or generated output is required.
-
-Recommended GitHub Pages settings:
-
-- Source: deploy from a branch.
-- Branch: `main`.
-- Folder: `/root`.
-
-## Project Files
-
-- `index.html`: app shell and controls.
-- `styles.css`: visual design, responsive layout, contrast modes, and fullscreen stage mode.
-- `app.js`: song loading, lyric rendering, auto-scroll, settings, and keyboard controls.
-- `songs.json`: index of pre-made songs.
-- `songs/*.txt`: plain text song files.
-- `.nojekyll`: keeps GitHub Pages serving static files directly.
-
-## Adding Songs
-
-Pre-made songs are listed in `songs.json`, and each song can live in its own plain text file inside `songs/`.
-
-```json
-{
-  "songs": [
-    {
-      "id": "my-song",
-      "file": "songs/my-song.txt"
-    }
-  ]
-}
+```bash
+python3 -m http.server 4173
 ```
 
-Then create `songs/my-song.txt`:
+Open [localhost:4173](http://localhost:4173). Installing npm dependencies is only necessary for the browser tests.
+
+## Reading and rehearsal
+
+Select a song, then choose **Modo de lectura**:
+
+| Mode | Behavior |
+| --- | --- |
+| **Desplazamiento** | Scrolls the lyrics at an adjustable speed. **Text** sets the font size; **Start/Pause** controls scrolling. |
+| **Una pantalla** | Fits the entire song into the available stage area. |
+| **Dos columnas** | Fits complete verses into two columns, read left to right. |
+
+Fitted modes resize the text automatically when the viewport changes or fullscreen starts. They use compact margins and hide the scrolling speed and Start controls. **Spacing** remains adjustable; manual font size is disabled until you return to scrolling. Long songs can still require small text: use fullscreen or scrolling to improve readability at a distance.
+
+**Colores por estrofa** alternates four high-contrast verse colors. Blank lines and bracketed headings such as `[Coro]` separate segments. Choose **Stage**, **Paper**, or **Warm** for the background theme; verse colors adapt to Paper. Colors can also be disabled.
+
+Scroll the mouse wheel or drag/swipe the lyric area to move through the prompt manually. The **Restart** button resets the lyrics and pauses scrolling. Rotation and viewport resizing preserve scrolling progress.
+
+## YouTube playback
+
+Songs with a supported `url` show a YouTube player below the song selector. Press play inside the video to listen. Changing songs removes the previous player and stops its audio.
+
+**Velocidad de la canción** lists the playback rates offered by the loaded video and follows changes made in YouTube's own controls. It is disabled until the player is ready or when only normal speed is available. Arbitrary increments of 0.1 are not guaranteed; only the rates returned by the player are offered.
+
+Music playback and lyric scrolling are independent. **Start**, **Speed**, and the lyric **Restart** button do not control YouTube. There is no automatic synchronization of lyrics to the recording.
+
+### Fullscreen music controls
+
+Fullscreen shows the lyric stage and its controls, hiding the editor and embedded video panel. The music can continue playing. These buttons appear under **Música** in both native fullscreen and the expanded-stage fallback:
+
+| Button | YouTube action |
+| --- | --- |
+| **Play** | Starts or resumes the video. |
+| **Pause** | Pauses and keeps the current position. |
+| **Ir al inicio** | Returns to the beginning while preserving playback or pause. |
+| **Stop** | Pauses and returns to the beginning. |
+
+Music buttons are disabled until the player is ready, when no supported video URL is available, or when the player reports an error. Exit fullscreen to change the song or music speed.
+
+### Availability and troubleshooting
+
+YouTube playback requires an internet connection and a video that permits embedding. If a video cannot play inside LyricCue, use **Abrir en YouTube**. LyricCue does not collect account credentials, manage subscriptions, or remove advertisements.
+
+On desktop, the player is in the left control panel. On mobile, that panel is below the lyric stage: scroll outside the lyrics to reach it. The embedded video itself is intentionally outside the fullscreen stage.
+
+If an update appears missing, refresh the page with **Ctrl+Shift+R** (or **Cmd+Shift+R** on macOS). The HTML references versioned JavaScript and CSS URLs to reduce stale asset caching.
+
+## Song library and editing
+
+The published library currently contains six songs, each with a YouTube URL:
+
+- Me Persigue Tu Sombra — Alegres de Terán
+- Total Ya Se Fue — Los Invasores De Nuevo León
+- Hermosísimo Lucero — Alegres de Terán
+- Flor De Capomo — Carlos y José
+- Eslabón por Eslabón — Los Invasores De Nuevo León
+- La Chona — Los Tucanes de Tijuana
+
+The title, artist, and lyrics can be edited locally. **Save** creates a custom copy of a published song, preserving its video URL; saving an existing custom song updates that copy. Custom songs are stored in that browser's `localStorage`, not uploaded or synchronized to GitHub. Only custom songs can be deleted through the UI. Clearing browser storage removes those copies.
+
+### Add a published song
+
+Create a UTF-8 text file under `songs/`:
 
 ```text
 Title: My Song
 Artist: Artist Name
 
-Paste the lyrics here
-Blank lines are fine
-No JSON escaping is needed
+[Verse]
+First line
+Second line
+
+[Chorus]
+Chorus lyrics
 ```
 
-After publishing, GitHub Pages serves `songs.json` and the text files. The app loads those songs into the dropdown automatically. The editor still saves temporary custom songs in the browser with `localStorage`.
+Register it in the `songs` array in `songs.json`. For example, the existing La Chona entry is:
 
-## Features
+```json
+{
+  "id": "la-chona",
+  "file": "songs/la-chona.txt",
+  "url": "https://www.youtube.com/watch?v=ULxcmMgsxf4"
+}
+```
 
-- Song selector loaded from a static `songs.json` library and plain text song files.
-- Editable lyrics for quick paste-and-rehearse use.
-- Custom lyrics saved in the browser with `localStorage`.
-- Smooth automatic scrolling with speed, font size, and spacing controls.
-- Stage-only fullscreen mode that hides the editing controls.
-- Stage, paper, and warm contrast modes.
-- Restart, pause/play, fullscreen, and keyboard shortcuts.
+Use a unique `id` and the matching file path for a new song. The `url` is optional. Supported YouTube link formats include `watch?v=`, `youtu.be`, `shorts`, `live`, and `embed`. Other providers are not supported.
 
-## Keyboard
+The loader reads `Title:` and `Artist:` from the text file; the filename supplies a fallback title. Library entries can also supply title and artist overrides, or inline `title`, `artist`, and `lyrics` instead of a file. If no published songs can be loaded, the app falls back to its built-in sample cues.
 
-- `Space`: pause or resume.
-- `Arrow Down` / `Arrow Up`: move the lyrics a little.
-- `Page Down` / `Page Up`: move the lyrics more.
-- `Home`: restart from the top.
-- `End`: jump to the end.
-- `R`: restart from the top.
+Commit the text file and `songs.json` to publish the song. Changes made using the browser editor do not modify repository files.
 
-## Mobile use and browser tests
+## Keyboard shortcuts
 
-Playback, restart, fullscreen, and speed controls sit below the lyric stage and stay visible in portrait and landscape. Swipe vertically on the lyrics to move the prompt manually. Scroll outside the lyric stage to reach the song editor and typography settings. Rotating the device preserves progress. Fullscreen keeps the transport visible and falls back to an expanded stage when the browser cannot fullscreen an element.
+Click the lyric stage before using these shortcuts. They control the lyrics, not the music, and are ignored while an input, selector, button, or link has focus. The YouTube iframe handles its own keyboard input.
 
-Run the regression suite:
+| Key | Action |
+| --- | --- |
+| **Space** | Pause or resume lyric scrolling. |
+| **Arrow Down / Arrow Up** | Move the lyrics a small amount. |
+| **Page Down / Page Up** | Move the lyrics a larger amount. |
+| **Home / R** | Reset the lyrics and pause scrolling. |
+| **End** | Jump to the end of the lyrics. |
+| **Escape** | Leave the expanded-stage fallback; browsers handle native fullscreen exit. |
+
+## Browser tests
+
+Install the test dependencies and Chromium:
 
 ```bash
-npm install
+npm ci
 npx playwright install chromium
 npm test
 ```
 
-To use an existing Chrome installation instead:
+Or use an installed Chrome browser after `npm ci`:
 
 ```bash
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome npm test
 ```
 
-Tests cover portrait (390×844), landscape (844×390 and 932×430), and desktop (1440×900): control visibility, actual lyric movement, speed changes, pause/restart, rotation during playback, native and fallback fullscreen, and malformed browser storage. Mobile projects also exercise touch swipes and tapping the speed slider. Layout screenshots are written to `test-results/`.
+Playwright starts the Python server on port 4173, or reuses one already running. Run these commands from the repository root.
 
-These are automated Chrome mobile-emulation tests; physical Android/iPhone testing and iOS Safari validation remain separate checks.
+Tests cover desktop (1440×900), phone portrait (390×844), and two phone landscape sizes (844×390 and 932×430):
 
-## Lectura a distancia
+- Lyric scrolling, speed, pause/restart, rotation, touch gestures, and theme changes.
+- Fitted text, intact verse ordering, two-column layout, and verse colors.
+- Native and fallback fullscreen controls.
+- Song URL handling, custom-copy persistence, invalid URLs, and malformed browser storage.
+- Supported music speeds and fullscreen Play, Pause, Stop, and Ir al inicio actions.
 
-En **Modo de lectura**, selecciona **Una pantalla** para mostrar toda la canción o
-**Dos columnas** para repartir estrofas completas: primero se lee la columna
-izquierda, luego la derecha. El tamaño se ajusta automáticamente al espacio
- disponible, también al cambiar de orientación o entrar en pantalla completa.
-El control de espaciado sigue disponible; el tamaño manual y la reproducción
-se habilitan de nuevo al volver a **Desplazamiento**.
+Player integration tests use intercepted embed content and a mocked YouTube API for deterministic assertions. They do not verify remote video availability, advertisements, or authenticated Premium playback. Real YouTube playback needs a separate manual smoke check. Mobile tests emulate Chrome; physical Android/iPhone and Safari checks remain separate. Layout screenshots are written to `test-results/`.
 
-**Colores por estrofa** alterna cuatro colores de alto contraste. Separa los
-segmentos con líneas en blanco o encabezados como `[Coro]`. Los colores se
-adaptan al fondo claro de Paper y se pueden desactivar. Para canciones largas,
-el ajuste puede producir letra pequeña: usa pantalla completa o desplazamiento
-si necesitas letras mayores para leer a distancia.
+## Publishing and maintenance
 
-## Escuchar canciones
+The project is designed to be served directly from the repository root on GitHub Pages:
 
-Añade una propiedad opcional `"url"` a la canción en `songs.json`:
+- Source: **Deploy from a branch**.
+- Branch: **main**.
+- Folder: **/ (root)**.
 
-```json
-{
-  "id": "me-persigue-tu-sombra",
-  "file": "songs/me-persigue-tu-sombra.txt",
-  "url": "https://www.youtube.com/watch?v=ULxcmMgsxf4"
-}
-```
+No build artifacts or server-side application are required. Push approved changes to `main` and allow GitHub Pages to finish deployment.
 
-El reproductor aparece debajo del selector de canciones. Pulsa play en el vídeo;
-**Start** sigue controlando únicamente el desplazamiento de la letra. Cambiar de
-canción detiene el vídeo anterior. Las copias guardadas con **Save** conservan el enlace.
-Se admiten enlaces de YouTube `watch`, `youtu.be`, `shorts`, `live` y `embed`.
-En móvil, el reproductor está en el panel debajo de la letra; en pantalla completa
-el panel queda fuera de la vista y la música puede seguir sonando.
+When changing `app.js` or `styles.css`, also update their `?v=` values in `index.html` to invalidate cached assets. The current convention uses the first 12 hexadecimal characters of each file's SHA-256 hash.
 
-Se requiere conexión a YouTube y que el vídeo permita reproducción embebida.
-Si YouTube impide reproducirlo, usa **Abrir en YouTube**. Ejecuta la aplicación
-con `npm run dev` para probarla en `http://localhost:4173`.
-
-El selector **Velocidad de la canción** muestra las velocidades admitidas por el
-vídeo de YouTube y se sincroniza con su menú de reproducción. La API embebida no
-permite garantizar incrementos arbitrarios de 0,1. La velocidad musical y la del
-desplazamiento de la letra son independientes.
-
-En pantalla completa, los botones **Música: Play, Pause y Stop** controlan
-YouTube. **Pause** conserva la posición; **Stop** pausa y vuelve al principio.
-Se habilitan cuando el reproductor está listo y funcionan también con la
-pantalla completa alternativa del móvil. No modifican el desplazamiento de la letra.
-
-**Ir al inicio** vuelve al segundo cero del vídeo sin cambiar entre reproducción y pausa.
+| File | Purpose |
+| --- | --- |
+| `index.html` | App shell, player panel, and stage controls. |
+| `styles.css` | Responsive layout, themes, fitted views, and fullscreen controls. |
+| `app.js` | Library loading, local editing, lyric layout/scrolling, and YouTube integration. |
+| `songs.json` | Published song index and optional video URLs. |
+| `songs/*.txt` | Song metadata and lyrics. |
+| `tests/` | Playwright regression tests. |
+| `playwright.config.js` | Browser projects and local test server. |
+| `.nojekyll` | Keeps GitHub Pages serving the static project directly. |
