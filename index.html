@@ -8,7 +8,7 @@
       content="LyricCue is a rehearsal lyric prompter with readable stage contrast, smooth auto-scroll, and quick lyric selection."
     />
     <title>LyricCue</title>
-    <link rel="stylesheet" href="styles.css?v=4248209bda3a" />
+    <link rel="stylesheet" href="styles.css?v=1b09fac5f87b" />
   </head>
   <body>
     <main class="app-shell">
@@ -101,6 +101,13 @@
           <div class="fade fade-bottom" aria-hidden="true"></div>
         </div>
         <footer class="stage-controls">
+          <section class="music-transport" aria-label="Reproducción de YouTube">
+            <span>Música</span>
+            <button id="musicPlay" class="text-button" type="button" disabled>▶ Play</button>
+            <button id="musicPause" class="text-button" type="button" disabled>Ⅱ Pause</button>
+            <button id="musicStart" class="text-button" type="button" disabled>Ir al inicio</button>
+            <button id="musicStop" class="text-button" type="button" disabled>■ Stop</button>
+          </section>
           <div class="speed-control">
           <label for="scrollSpeed">Speed</label>
           <output id="scrollSpeedValue" for="scrollSpeed">24 px/s</output>
@@ -122,6 +129,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=a32e5229faec"></script>
+    <script src="app.js?v=702890c6a73c"></script>
   </body>
 </html>

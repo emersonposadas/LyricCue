@@ -582,3 +582,18 @@ body[data-theme="paper"] .lyrics.colored .lyric-segment[data-color="3"] { color:
 .stage-wrap[data-reading="columns"] .stage-controls { grid-template-columns: 1fr; }
 .stage-wrap[data-reading="fit"] .transport,
 .stage-wrap[data-reading="columns"] .transport { justify-content: flex-end; }
+
+.music-transport { display: none; }
+.stage-wrap:fullscreen .music-transport,
+.stage-wrap.expanded .music-transport {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 8px;
+}
+.music-transport span { color: var(--stage-muted); font-size: 14px; }
+.music-transport .text-button { background: var(--stage-ink); color: var(--stage-bg); }
+@media (max-width: 420px) {
+  .music-transport { flex-wrap: wrap; }
+  .music-transport .text-button { padding: 0 10px; }
+}

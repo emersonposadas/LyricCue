@@ -258,6 +258,18 @@ function youtubeVideoId(value) {
   }
 }
 
+const musicButtons = ["musicPlay", "musicPause", "musicStop", "musicStart"].map(id => document.getElementById(id));
+function enableMusicControls(enabled) {
+  musicButtons.forEach(button => { button.disabled = !enabled; });
+}
+musicButtons[0].addEventListener("click", () => youtubePlayer?.playVideo());
+musicButtons[1].addEventListener("click", () => youtubePlayer?.pauseVideo());
+musicButtons[2].addEventListener("click", () => {
+  if (!youtubePlayer) return;
+  youtubePlayer.pauseVideo();
+  youtubePlayer.seekTo(0, true);
+});
+musicButtons[3].addEventListener("click", () => youtubePlayer?.seekTo(0, true));
 let youtubePlayer = null;
 let youtubeApiPromise;
 function loadYouTubeApi() {
@@ -298,6 +310,7 @@ els.playbackRate.addEventListener("change", () => {
 });
 
 function renderSongPlayer(song) {
+  enableMusicControls(false);
   if (youtubePlayer) youtubePlayer.destroy();
   youtubePlayer = null;
   els.playbackRate.replaceChildren(new Option("1× (normal)", "1"));
@@ -326,11 +339,16 @@ function renderSongPlayer(song) {
     if (!player.isConnected) return;
     youtubePlayer = new YT.Player(player, {
       events: {
-        onReady: syncPlaybackRates,
+        onReady: event => {
+          if (event.target !== youtubePlayer) return;
+          enableMusicControls(true);
+          syncPlaybackRates(event);
+        },
         onStateChange: syncPlaybackRates,
         onPlaybackRateChange: syncPlaybackRates,
         onError: () => {
           if (!player.isConnected) return;
+          enableMusicControls(false);
           els.playbackRate.disabled = true;
           els.rateHint.textContent = "No se pudo cargar el vídeo. Prueba el enlace de YouTube.";
         }
@@ -686,7 +704,7 @@ els.themeButtons.forEach((button) => {
   });
 });
 window.addEventListener("keydown", (event) => {
-  if (event.target.matches("textarea, input, select")) return;
+  if (event.target.matches("textarea, input, select, button, a")) return;
 
   const largeStep = Math.max(120, els.stage.clientHeight * 0.45);
 

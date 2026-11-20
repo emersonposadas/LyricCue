@@ -151,3 +151,10 @@ El selector **Velocidad de la canción** muestra las velocidades admitidas por e
 vídeo de YouTube y se sincroniza con su menú de reproducción. La API embebida no
 permite garantizar incrementos arbitrarios de 0,1. La velocidad musical y la del
 desplazamiento de la letra son independientes.
+
+En pantalla completa, los botones **Música: Play, Pause y Stop** controlan
+YouTube. **Pause** conserva la posición; **Stop** pausa y vuelve al principio.
+Se habilitan cuando el reproductor está listo y funcionan también con la
+pantalla completa alternativa del móvil. No modifican el desplazamiento de la letra.
+
+**Ir al inicio** vuelve al segundo cero del vídeo sin cambiar entre reproducción y pausa.

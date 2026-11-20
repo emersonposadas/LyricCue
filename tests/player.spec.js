@@ -46,6 +46,9 @@ test('speed selector uses supported rates and follows player changes', async ({ 
         window.testPlayer = this;
         setTimeout(() => events.onReady({ target: this }), 0);
       }
+      playVideo() { this.playing = true; }
+      pauseVideo() { this.playing = false; }
+      seekTo(time) { this.time = time; }
       getAvailablePlaybackRates() { return [0.5, 0.75, 1, 1.25, 1.5, 2]; }
       getPlaybackRate() { return this.rate; }
       setPlaybackRate(rate) {
@@ -66,7 +69,28 @@ test('speed selector uses supported rates and follows player changes', async ({ 
   expect(await page.evaluate(() => window.testPlayer.rate)).toBe(0.75);
   await page.evaluate(() => window.testPlayer.setPlaybackRate(1.5));
   await expect(rate).toHaveValue('1.5');
+  for (const fallback of [false, true]) {
+    if (fallback) await page.evaluate(() => {
+      document.querySelector('.stage-wrap').requestFullscreen = () => Promise.reject(new Error('Unavailable'));
+    });
+    await page.locator('#fullscreen').click();
+    for (const id of ['musicPlay', 'musicPause', 'musicStop', 'musicStart']) {
+      await expect(page.locator(`#${id}`)).toBeInViewport();
+    }
+    await page.locator('#musicPlay').click();
+    expect(await page.evaluate(() => window.testPlayer.playing)).toBe(true);
+    await page.evaluate(() => { window.testPlayer.time = 42; });
+    await page.locator('#musicPause').click();
+    expect(await page.evaluate(() => [window.testPlayer.playing, window.testPlayer.time])).toEqual([false, 42]);
+    await page.locator('#musicPlay').click();
+    await page.locator('#musicStart').click();
+    expect(await page.evaluate(() => [window.testPlayer.playing, window.testPlayer.time])).toEqual([true, 0]);
+    await page.locator('#musicStop').click();
+    expect(await page.evaluate(() => [window.testPlayer.playing, window.testPlayer.time])).toEqual([false, 0]);
+    await page.locator('#fullscreen').click();
+  }
   await page.locator('#songSelect').selectOption('none');
+  await expect(page.locator('#musicPlay')).toBeDisabled();
   await expect(rate).toBeDisabled();
   await expect(rate).toHaveValue('1');
 });
