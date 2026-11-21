@@ -24,6 +24,7 @@ test('complete library works offline after reload, including audio ranges', asyn
     expect(result[1]).toBe(44);
     expect(result[2]).toMatch(/^bytes 0-43\//);
   }
+  await page.locator('#fullscreen').click();
   const audio = page.locator('audio');
   await page.locator('#musicPlay').click();
   await expect.poll(() => audio.evaluate(el => el.currentTime)).toBeGreaterThan(0);
