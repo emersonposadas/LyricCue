@@ -550,17 +550,6 @@ body[data-theme="paper"] .lyrics.colored .lyric-segment[data-color="3"] { color:
 .lyric-column { min-width: 0; }
 .lyric-column .lyric-segment:last-child { margin-bottom: 0; }
 
-.song-player iframe {
-  display: block;
-  width: 100%;
-  min-height: 200px;
-  aspect-ratio: 16 / 9;
-  border: 0;
-  border-radius: 8px;
-  background: #070807;
-}
-.song-player a { color: var(--accent-strong); font-size: 14px; }
-
 /* Give fitted lyrics more room without changing the scrolling view. */
 .stage-wrap[data-reading="fit"],
 .stage-wrap[data-reading="columns"] {
@@ -644,3 +633,5 @@ body[data-theme="paper"] .lyrics.colored .lyric-segment[data-color="3"] { color:
 }
 
 .control-section[hidden] { display: none; }
+
+.song-player audio { width: 100%; margin: 8px 0; }

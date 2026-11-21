@@ -5,7 +5,6 @@ const els = {
   rateHint: document.querySelector("#rateHint"),
   songPlayer: document.querySelector("#songPlayer"),
   playerHint: document.querySelector("#playerHint"),
-  songSource: document.querySelector("#songSource"),
   readingMode: document.querySelector("#readingMode"),
   segmentColors: document.querySelector("#segmentColors"),
   fitHint: document.querySelector("#fitHint"),
@@ -78,7 +77,7 @@ async function loadLibrarySong(song, index) {
         title: song.title || parsed.title,
         artist: song.artist || parsed.artist,
         lyrics: parsed.lyrics,
-        url: song.url,
+        audio: song.audio,
         builtIn: true
       };
     } catch {
@@ -149,127 +148,60 @@ function selectSong(id) {
   renderSongOptions();
 }
 
-function youtubeVideoId(value) {
-  try {
-    const url = new URL(value);
-    if (!["https:", "http:"].includes(url.protocol)) return null;
-    const host = url.hostname.toLowerCase();
-    let id;
-    if (host === "youtu.be") {
-      id = url.pathname.slice(1);
-    } else if (["youtube.com", "www.youtube.com", "m.youtube.com", "youtube-nocookie.com", "www.youtube-nocookie.com"].includes(host)) {
-      id = url.pathname === "/watch"
-        ? url.searchParams.get("v")
-        : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)\/?$/)?.[1];
-    }
-    return /^[A-Za-z0-9_-]{11}$/.test(id || "") ? id : null;
-  } catch {
-    return null;
-  }
-}
-
 const musicButtons = ["musicPlay", "musicPause", "musicStop", "musicStart"].map(id => document.getElementById(id));
+let audioPlayer = null;
 function enableMusicControls(enabled) {
   musicButtons.forEach(button => { button.disabled = !enabled; });
 }
-musicButtons[0].addEventListener("click", () => youtubePlayer?.playVideo());
-musicButtons[1].addEventListener("click", () => youtubePlayer?.pauseVideo());
-musicButtons[2].addEventListener("click", () => {
-  if (!youtubePlayer) return;
-  youtubePlayer.pauseVideo();
-  youtubePlayer.seekTo(0, true);
+musicButtons[0].addEventListener("click", () => {
+  audioPlayer?.play().catch(() => { els.playerHint.textContent = "No se pudo reproducir el audio. Intenta de nuevo."; });
 });
-musicButtons[3].addEventListener("click", () => youtubePlayer?.seekTo(0, true));
-let youtubePlayer = null;
-let youtubeApiPromise;
-function loadYouTubeApi() {
-  if (window.YT?.Player) return Promise.resolve();
-  if (!youtubeApiPromise) {
-    youtubeApiPromise = new Promise((resolve, reject) => {
-      window.onYouTubeIframeAPIReady = resolve;
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      script.onerror = reject;
-      document.head.append(script);
-    });
-  }
-  return youtubeApiPromise;
-}
-
-function syncPlaybackRates(event) {
-  if (event.target !== youtubePlayer) return;
-  const rates = event.target.getAvailablePlaybackRates();
-  els.playbackRate.replaceChildren(...rates.map(rate => {
-    const option = document.createElement("option");
-    option.value = rate;
-    option.textContent = rate === 1 ? "1× (normal)" : `${rate}×`;
-    return option;
-  }));
-  els.playbackRate.value = String(event.target.getPlaybackRate());
-  els.playbackRate.disabled = rates.length < 2;
-  els.rateHint.textContent = rates.length < 2
-    ? "Este vídeo solo ofrece velocidad normal."
-    : "Velocidades disponibles para este vídeo. No cambia el desplazamiento de la letra.";
-}
+musicButtons[1].addEventListener("click", () => audioPlayer?.pause());
+musicButtons[2].addEventListener("click", () => {
+  if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; }
+});
+musicButtons[3].addEventListener("click", () => { if (audioPlayer) audioPlayer.currentTime = 0; });
 els.playbackRate.addEventListener("change", () => {
-  if (!youtubePlayer || els.playbackRate.disabled) return;
-  const rate = Number(els.playbackRate.value);
-  youtubePlayer.setPlaybackRate(rate);
-  // Show the confirmed rate; the event will update it if the request succeeds.
-  els.playbackRate.value = String(youtubePlayer.getPlaybackRate());
+  if (audioPlayer) audioPlayer.playbackRate = Number(els.playbackRate.value);
 });
 
 function renderSongPlayer(song) {
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+  }
+  audioPlayer = null;
   enableMusicControls(false);
-  if (youtubePlayer) youtubePlayer.destroy();
-  youtubePlayer = null;
-  els.playbackRate.replaceChildren(new Option("1× (normal)", "1"));
-  els.playbackRate.disabled = true;
-  els.rateHint.textContent = "Disponible al cargar el vídeo.";
-  // Removing the previous iframe also stops its audio when changing songs.
   els.songPlayer.replaceChildren();
-  els.songSource.hidden = true;
-  els.songSource.removeAttribute("href");
-  const id = youtubeVideoId(song.url);
-  if (!id) {
-    els.rateHint.textContent = "Añade un enlace de YouTube para controlar la velocidad.";
-    els.playerHint.textContent = song.url
-      ? "No se reconoce esta URL. Usa un enlace de vídeo de YouTube."
-      : "Esta canción no tiene un enlace de YouTube añadido.";
+  els.playbackRate.replaceChildren(...[0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => new Option(rate === 1 ? "1× (normal)" : `${rate}×`, rate)));
+  els.playbackRate.value = "1";
+  els.playbackRate.disabled = true;
+  els.rateHint.textContent = "La velocidad del audio no cambia el desplazamiento de la letra.";
+  if (!/^audio\/[a-z0-9-]+\.wav$/.test(song.audio || "")) {
+    els.playerHint.textContent = "Esta canción no tiene un archivo WAV local válido.";
     return;
   }
-  const player = document.createElement("iframe");
-  player.src = `https://www.youtube.com/embed/${id}?playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
-  player.title = `Reproducir ${song.title}`;
-  player.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-  player.allowFullscreen = true;
-  player.referrerPolicy = "strict-origin-when-cross-origin";
-  els.songPlayer.append(player);
-  loadYouTubeApi().then(() => {
-    if (!player.isConnected) return;
-    youtubePlayer = new YT.Player(player, {
-      events: {
-        onReady: event => {
-          if (event.target !== youtubePlayer) return;
-          enableMusicControls(true);
-          syncPlaybackRates(event);
-        },
-        onStateChange: syncPlaybackRates,
-        onPlaybackRateChange: syncPlaybackRates,
-        onError: () => {
-          if (!player.isConnected) return;
-          enableMusicControls(false);
-          els.playbackRate.disabled = true;
-          els.rateHint.textContent = "No se pudo cargar el vídeo. Prueba el enlace de YouTube.";
-        }
-      }
-    });
-  }).catch(() => {
-    if (player.isConnected) els.rateHint.textContent = "Usa el menú del vídeo para cambiar la velocidad.";
+  const player = document.createElement("audio");
+  player.controls = true;
+  player.preload = "metadata";
+  player.src = song.audio;
+  player.setAttribute("aria-label", `Reproducir ${song.title}`);
+  audioPlayer = player;
+  player.addEventListener("loadedmetadata", () => {
+    if (player !== audioPlayer) return;
+    enableMusicControls(true);
+    els.playbackRate.disabled = false;
   });
-  els.songSource.href = `https://www.youtube.com/watch?v=${id}`;
-  els.songSource.hidden = false;
-  els.playerHint.textContent = "Pulsa ▶ en el vídeo para escuchar. Start controla solo el desplazamiento de la letra. Si el vídeo no está disponible aquí, ábrelo en YouTube.";
+  player.addEventListener("ratechange", () => { if (player === audioPlayer) els.playbackRate.value = String(player.playbackRate); });
+  player.addEventListener("error", () => {
+    if (player !== audioPlayer) return;
+    enableMusicControls(false);
+    els.playbackRate.disabled = true;
+    els.playerHint.textContent = "No se pudo cargar el WAV. Conéctate y prepara la biblioteca sin conexión.";
+  });
+  els.songPlayer.append(player);
+  els.playerHint.textContent = "Audio local. Los controles de la letra funcionan de forma independiente.";
 }
 
 function renderLyrics(text) {
@@ -631,3 +563,26 @@ async function init() {
 }
 
 init();
+
+const offlineButton = document.querySelector("#prepareOffline");
+const offlineStatus = document.querySelector("#offlineStatus");
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").then(() => {
+    offlineButton.disabled = false;
+    offlineStatus.textContent = "Descarga la biblioteca antes de desconectarte.";
+  }).catch(() => { offlineStatus.textContent = "El modo sin conexión requiere HTTPS o localhost."; });
+  navigator.serviceWorker.addEventListener("message", ({ data }) => {
+    if (data.type !== "offline-progress") return;
+    offlineStatus.textContent = data.error || (data.done ? "Biblioteca lista para usar sin conexión." : `Guardando canciones: ${data.current}/${data.total}…`);
+    offlineButton.disabled = !data.done && !data.error;
+  });
+  offlineButton.addEventListener("click", async () => {
+    offlineButton.disabled = true;
+    offlineStatus.textContent = "Preparando descarga…";
+    if (navigator.storage?.persist) await navigator.storage.persist().catch(() => false);
+    const registration = await navigator.serviceWorker.ready;
+    registration.active.postMessage({ type: "prepare-offline" });
+  });
+} else {
+  offlineStatus.textContent = "El modo sin conexión requiere HTTPS o localhost.";
+}

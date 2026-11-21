@@ -8,7 +8,9 @@
       content="LyricCue is a rehearsal lyric prompter with readable stage contrast, smooth auto-scroll, and quick lyric selection."
     />
     <title>LyricCue</title>
-    <link rel="stylesheet" href="styles.css?v=49b9f9ae3a08" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#101820" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="app-shell">
@@ -31,9 +33,10 @@
           <div id="songPlayer"></div>
           <label for="playbackRate">Velocidad de la canción</label>
           <select id="playbackRate" disabled><option value="1">1× (normal)</option></select>
-          <p id="rateHint" class="control-hint" aria-live="polite">Disponible al cargar el vídeo.</p>
+          <p id="rateHint" class="control-hint" aria-live="polite">Disponible al cargar el audio.</p>
           <p id="playerHint" class="control-hint" aria-live="polite"></p>
-          <a id="songSource" target="_blank" rel="noopener noreferrer" hidden>Abrir en YouTube</a>
+          <button id="prepareOffline" class="text-button" type="button" disabled>Descargar para usar sin conexión</button>
+          <p id="offlineStatus" class="control-hint" role="status"></p>
         </section>
 
         <section class="control-section">
@@ -86,7 +89,7 @@
           <div class="fade fade-bottom" aria-hidden="true"></div>
         </div>
         <footer class="stage-controls">
-          <section class="music-transport" aria-label="Reproducción de YouTube">
+          <section class="music-transport" aria-label="Reproducción de audio">
             <span>Música</span>
             <button id="musicPlay" class="text-button" type="button" disabled>▶ Play</button>
             <button id="musicPause" class="text-button" type="button" disabled>Ⅱ Pause</button>
@@ -114,6 +117,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=2acebcb0ef66"></script>
+    <script src="app.js"></script>
   </body>
 </html>

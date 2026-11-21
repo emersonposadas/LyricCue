@@ -1,6 +1,6 @@
 # LyricCue
 
-LyricCue is a static rehearsal lyric prompter with large, high-contrast text, automatic scrolling, fitted reading modes, and embedded YouTube playback. It uses plain HTML, CSS, and JavaScript, with no backend or build step.
+LyricCue is a static rehearsal lyric prompter with large, high-contrast text, automatic scrolling, fitted reading modes, and local WAV playback. It uses plain HTML, CSS, and JavaScript, with no backend or build step.
 
 **Live app:** [emersonposadas.github.io/LyricCue](https://emersonposadas.github.io/LyricCue/)
 
@@ -38,38 +38,34 @@ Fitted modes resize the text automatically when the viewport changes or fullscre
 
 Scroll the mouse wheel or drag/swipe the lyric area to move through the prompt manually. The **Restart** button resets the lyrics and pauses scrolling. Rotation and viewport resizing preserve scrolling progress.
 
-## YouTube playback
+## Local audio and Android offline installation
 
-Songs with a supported `url` show a YouTube player below the song selector. Press play inside the video to listen. Changing songs removes the previous player and stops its audio.
+All 13 catalog entries play their `audio/*.wav` file using the browser audio player. The original `url` remains as source metadata only; the app makes no YouTube requests. Speed, play, pause, stop and return-to-start controls work independently of lyric scrolling, including fullscreen.
 
-**Velocidad de la canción** lists the playback rates offered by the loaded video and follows changes made in YouTube's own controls. It is disabled until the player is ready or when only normal speed is available. Arbitrary increments of 0.1 are not guaranteed; only the rates returned by the player are offered.
+On Android:
 
-Music playback and lyric scrolling are independent. **Start**, **Speed**, and the lyric **Restart** button do not control YouTube. There is no automatic synchronization of lyrics to the recording.
+1. Open the published HTTPS site in Chrome while connected (GitHub Pages is supported, including project subpaths).
+2. Tap **Descargar para usar sin conexión** and wait for **Biblioteca lista para usar sin conexión**. Keep the app open until the download completes; WAV files require substantial device storage.
+3. In Chrome's menu choose **Install app** / **Add to Home screen**.
+4. Open LyricCue from its icon. Lyrics, audio and controls now work in airplane mode.
 
-### Fullscreen music controls
+This is an installable PWA, not an APK. The initial visit and library download require a connection. Browser data deletion or storage eviction removes the offline library; download it again if needed. The app requests persistent storage, but the browser decides whether to grant it. A failed download can be retried and resumes already cached files.
 
-Fullscreen shows the lyric stage and its controls, hiding the control panel and embedded video. The music can continue playing. These buttons appear under **Música** in both native fullscreen and the expanded-stage fallback:
+To download missing tracks again, install `yt-dlp` and `ffmpeg`, then run:
 
-| Button | YouTube action |
-| --- | --- |
-| **Play** | Starts or resumes the video. |
-| **Pause** | Pauses and keeps the current position. |
-| **Ir al inicio** | Returns to the beginning while preserving playback or pause. |
-| **Stop** | Pauses and returns to the beginning. |
+```sh
+python3 scripts/download-audio.py
+# Only if authentication is needed:
+python3 scripts/download-audio.py --chrome
+```
 
-Music buttons are disabled until the player is ready, when no supported video URL is available, or when the player reports an error. Exit fullscreen to change the song or music speed.
+The Chrome option reads the local browser session; no cookies are exported to this repository. Existing WAV files are skipped; remove a specific WAV first to regenerate it.
 
-### Availability and troubleshooting
-
-YouTube playback requires an internet connection and a video that permits embedding. If a video cannot play inside LyricCue, use **Abrir en YouTube**. LyricCue does not collect account credentials, manage subscriptions, or remove advertisements.
-
-On desktop, the player is in the left control panel. On mobile, that panel is below the lyric stage: scroll outside the lyrics to reach it. The embedded video itself is intentionally outside the fullscreen stage.
-
-If an update appears missing, refresh the page with **Ctrl+Shift+R** (or **Cmd+Shift+R** on macOS). The HTML references versioned JavaScript and CSS URLs to reduce stale asset caching.
+When publishing updates, bump `VERSION` in `sw.js` so the shell and catalog refresh together. Close all app tabs and reopen to activate an installed update, then download the new library before going offline.
 
 ## Song library and editing
 
-The published library currently contains six songs plus an alternate backing-track entry, each with a YouTube URL:
+The published library contains 13 recordings and backing tracks. Titles include:
 
 - Me Persigue Tu Sombra — Alegres de Terán
 - Total Ya Se Fue — Los Invasores De Nuevo León
@@ -102,15 +98,16 @@ Register it in the `songs` array in `songs.json`. For example, the existing La C
 {
   "id": "la-chona",
   "file": "songs/la-chona.txt",
+  "audio": "audio/la-chona.wav",
   "url": "https://www.youtube.com/watch?v=ULxcmMgsxf4"
 }
 ```
 
-Use a unique `id` and the matching file path for a new song. The `url` is optional. Supported YouTube link formats include `watch?v=`, `youtu.be`, `shorts`, `live`, and `embed`. Other providers are not supported.
+Use a unique `id` and the matching file path for a new song. Set `audio` to `audio/<id>.wav` and commit the matching WAV. The optional `url` records the original source and is not used for playback.
 
 The loader reads `Title:` and `Artist:` from the text file; the filename supplies a fallback title. Library entries can also supply title and artist overrides. If no files can be loaded, the app displays an empty library message.
 
-### Reuse lyrics with a different video
+### Reuse lyrics with a different recording
 
 Multiple entries can reference the same text file. Give each entry a unique `id`
 and set `title` in `songs.json` to distinguish the version in the dropdown and
@@ -121,6 +118,7 @@ stage heading, without changing the shared text file:
   "id": "eslabon-por-eslabon-pista",
   "title": "Eslabón por Eslabón [PISTA]",
   "file": "songs/eslabon-por-eslabon.txt",
+  "audio": "audio/eslabon-por-eslabon-pista.wav",
   "url": "https://www.youtube.com/watch?v=_5W93Ec1TE8"
 }
 ```
@@ -132,7 +130,7 @@ Commit the text file and `songs.json` to publish the song.
 
 ## Keyboard shortcuts
 
-Click the lyric stage before using these shortcuts. They control the lyrics, not the music, and are ignored while an input, selector, button, or link has focus. The YouTube iframe handles its own keyboard input.
+Click the lyric stage before using these shortcuts. They control the lyrics, not the music, and are ignored while an input, selector, button, or link has focus. The native audio player handles its own keyboard input.
 
 | Key | Action |
 | --- | --- |
@@ -169,7 +167,7 @@ Tests cover desktop (1440×900), phone portrait (390×844), and two phone landsc
 - Song URL handling, invalid URLs, and malformed browser storage.
 - Supported music speeds and fullscreen Play, Pause, Stop, and Ir al inicio actions.
 
-Player integration tests use intercepted embed content and a mocked YouTube API for deterministic assertions. They do not verify remote video availability, advertisements, or authenticated Premium playback. Real YouTube playback needs a separate manual smoke check. Mobile tests emulate Chrome; physical Android/iPhone and Safari checks remain separate. Layout screenshots are written to `test-results/`.
+Player tests exercise local WAV playback, controls, speed, switching and errors. Offline tests verify cached navigation and audio byte ranges with the network disabled. Mobile tests emulate Chrome; physical Android installation remains a manual check.
 
 ## Publishing and maintenance
 
@@ -187,8 +185,8 @@ When changing `app.js` or `styles.css`, also update their `?v=` values in `index
 | --- | --- |
 | `index.html` | App shell, player panel, and stage controls. |
 | `styles.css` | Responsive layout, themes, fitted views, and fullscreen controls. |
-| `app.js` | Library loading, local editing, lyric layout/scrolling, and YouTube integration. |
-| `songs.json` | Published song index and optional video URLs. |
+| `app.js` | Library loading, local editing, lyric layout/scrolling, and local WAV playback and offline caching. |
+| `songs.json` | Published song index, local WAV paths and source URLs. |
 | `songs/*.txt` | Song metadata and lyrics. |
 | `tests/` | Playwright regression tests. |
 | `playwright.config.js` | Browser projects and local test server. |

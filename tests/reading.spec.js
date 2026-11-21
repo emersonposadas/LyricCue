@@ -1,4 +1,6 @@
 const { test, expect } = require('@playwright/test');
+// Fixture routes must bypass the worker; offline behavior has its own integration test.
+test.use({ serviceWorkers: 'block' });
 
 test('whole song fits, columns preserve verses, and colors follow contrast', async ({ page }) => {
   await page.goto('/');
